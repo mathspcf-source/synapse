@@ -2,359 +2,212 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Synapse | Terapeuta</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>SYNAPSE ADMIN | Gestão de Terapeutas</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Inter', sans-serif; background: #0a0a0f; color: #fff; }
-        
-        .login-container {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(135deg, #0B0E14 0%, #1A1F2E 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-        }
-        .login-card {
-            background: #0F1219;
-            border-radius: 32px;
-            padding: 48px;
-            width: 400px;
-            text-align: center;
-            border: 1px solid #2D3748;
-        }
-        .login-card .logo-icon {
-            background: #6B4E9E;
-            width: 60px;
-            height: 60px;
-            border-radius: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 20px;
-        }
-        .login-card h1 { font-size: 1.8rem; margin-bottom: 8px; }
-        .login-card input {
-            width: 100%;
-            background: #1A202C;
-            border: 1px solid #2D3748;
-            padding: 14px;
-            border-radius: 12px;
-            margin-bottom: 16px;
-            color: white;
-        }
-        .login-card button {
-            width: 100%;
-            background: #6B4E9E;
-            border: none;
-            padding: 14px;
-            border-radius: 40px;
-            color: white;
-            font-weight: 600;
-            cursor: pointer;
-        }
-        .creator {
-            position: absolute;
-            bottom: 20px;
-            left: 0;
-            right: 0;
-            text-align: center;
-            font-size: 0.7rem;
-            color: #5A6A85;
-        }
-        
-        .dashboard { display: none; padding: 20px; }
-        .header {
-            background: #14141c;
-            border-radius: 20px;
-            padding: 20px;
-            margin-bottom: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .stats {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 20px;
-            margin-bottom: 20px;
-        }
-        .stat-card {
-            background: #14141c;
-            border-radius: 20px;
-            padding: 20px;
-            text-align: center;
-        }
-        .stat-number { font-size: 2rem; font-weight: 700; color: #e6c88a; }
-        .stat-label { font-size: 0.7rem; color: #8a99b4; margin-top: 8px; }
-        
-        .card {
-            background: #14141c;
-            border-radius: 20px;
-            padding: 20px;
-            margin-bottom: 20px;
-        }
-        .card-title {
-            font-size: 1rem;
-            font-weight: 600;
-            margin-bottom: 16px;
-            color: #e6c88a;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        th, td {
-            padding: 12px;
-            text-align: left;
-            border-bottom: 1px solid #252530;
-        }
-        th { color: #8a99b4; font-weight: 500; }
-        .btn-icon {
-            background: transparent;
-            border: none;
-            color: #6B4E9E;
-            cursor: pointer;
-            margin: 0 4px;
-        }
-        .btn-primary {
-            background: #6B4E9E;
-            border: none;
-            padding: 8px 20px;
-            border-radius: 30px;
-            color: white;
-            cursor: pointer;
-        }
-        .status-badge { padding: 4px 12px; border-radius: 30px; font-size: 0.7rem; }
-        .status-active { background: #4CAF7A; }
-        
-        .toast {
-            position: fixed;
-            bottom: 30px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: #6B4E9E;
-            padding: 8px 20px;
-            border-radius: 30px;
-            z-index: 1000;
-        }
+        :root{--primary:#6B4E9E;--primary-light:#F0EBF8;--primary-dark:#2D1B4E;--bg:#F8F7FC;--card-bg:#FFFFFF;--text:#2D1B4E;--text-secondary:#6B6B7A;--border:#E8E4F0;--success:#4CAF7A;--warning:#FF9800;--danger:#E57373;--info:#5B8DEF;--white:#FFFFFF;--shadow-sm:0 2px 8px rgba(0,0,0,0.04);--shadow-md:0 8px 24px rgba(0,0,0,0.06);--radius-sm:12px;--radius-lg:20px;--radius-xl:24px}
+        *{margin:0;padding:0;box-sizing:border-box}body{font-family:'Inter',sans-serif;background:var(--bg);min-height:100vh;color:var(--text)}::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border);border-radius:20px}
+
+        .login-container{position:fixed;top:0;left:0;width:100%;height:100%;background:linear-gradient(135deg,#2D1B4E 0%,#1A0F30 100%);display:flex;align-items:center;justify-content:center;z-index:1000}
+        .login-card{background:var(--white);border-radius:32px;padding:48px;width:420px;text-align:center;box-shadow:0 25px 50px rgba(0,0,0,0.3)}
+        .login-card .logo-icon{font-size:3rem;color:var(--primary);background:var(--primary-light);width:88px;height:88px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px}
+        .login-card h1{font-size:1.8rem;font-weight:700;color:var(--text)}.login-card .subtitle{color:var(--text-secondary);margin:8px 0 32px 0;font-size:0.85rem}
+        .login-card input{width:100%;background:var(--bg);border:2px solid var(--border);border-radius:60px;padding:14px 20px;margin-bottom:16px;font-size:0.9rem;outline:none;transition:0.3s}.login-card input:focus{border-color:var(--primary);background:var(--white)}
+        .login-card button{width:100%;background:var(--primary);color:white;border:none;border-radius:60px;padding:14px;font-weight:600;font-size:1rem;cursor:pointer;transition:0.3s;margin-top:8px}.login-card button:hover{background:#5a3d8a;transform:translateY(-2px);box-shadow:0 8px 20px rgba(107,78,158,0.3)}
+        .login-footer{margin-top:20px;padding-top:16px;border-top:1px solid var(--border);font-size:0.7rem;color:var(--text-secondary);line-height:1.8}.login-footer strong{color:var(--text)}.login-footer .whatsapp{color:#25D366;font-weight:600}
+        .error-msg{color:var(--danger);font-size:0.75rem;margin-top:16px;display:none}.error-msg.show{display:block}
+        .loading-spinner{display:none;margin:10px auto;width:30px;height:30px;border:3px solid var(--border);border-top-color:var(--primary);border-radius:50%;animation:spin 0.8s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}
+
+        .top-nav{background:var(--primary-dark);padding:12px 28px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;box-shadow:0 4px 20px rgba(0,0,0,0.15);position:sticky;top:0;z-index:100}
+        .logo-area{display:flex;align-items:center;gap:10px}.logo-area i{font-size:1.6rem;color:#FFF}.logo-area h1{font-size:1.2rem;font-weight:700;color:#FFF}
+        .nav-buttons{display:flex;gap:6px;flex-wrap:wrap}.nav-btn{background:transparent;color:rgba(255,255,255,0.65);border:1px solid transparent;padding:8px 16px;border-radius:30px;font-size:0.8rem;font-weight:500;cursor:pointer;transition:0.2s;display:flex;align-items:center;gap:6px;white-space:nowrap}.nav-btn i{font-size:0.85rem}.nav-btn:hover{background:rgba(255,255,255,0.08);color:#FFF}.nav-btn.active{background:#FFF;color:var(--primary-dark);font-weight:600}
+
+        .main-content{padding:28px 32px;max-width:1400px;margin:0 auto}.page-header{margin-bottom:24px}.page-header h1{font-size:1.6rem;font-weight:700;color:var(--text)}.page-header p{color:var(--text-secondary);margin-top:2px;font-size:0.8rem}
+        .panel{display:none}.panel.active{display:block;animation:fadePanel 0.3s ease}@keyframes fadePanel{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+        .card{background:var(--card-bg);border-radius:var(--radius-xl);padding:24px;margin-bottom:20px;border:1px solid var(--border);box-shadow:var(--shadow-sm);transition:0.2s}.card:hover{box-shadow:var(--shadow-md)}.card h3{font-size:1rem;font-weight:600;color:var(--text);margin-bottom:18px;display:flex;align-items:center;gap:10px}.card h3 i{color:var(--primary);background:var(--primary-light);padding:7px;border-radius:10px;font-size:0.9rem}
+
+        .tiles-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}.tile{background:var(--card-bg);border-radius:var(--radius-lg);padding:24px;box-shadow:var(--shadow-sm);border:1px solid var(--border);cursor:pointer;transition:0.2s;position:relative;overflow:hidden}.tile::before{content:'';position:absolute;top:0;left:0;width:4px;height:100%;background:var(--primary);border-radius:0 4px 4px 0;opacity:0;transition:0.2s}.tile:hover{transform:translateY(-3px);box-shadow:var(--shadow-md)}.tile:hover::before{opacity:1}.tile-icon{font-size:1.8rem;color:var(--primary);margin-bottom:12px}.tile-value{font-size:1.8rem;font-weight:700;color:var(--text)}.tile-label{font-size:0.7rem;color:var(--text-secondary);margin-top:4px;text-transform:uppercase;letter-spacing:0.5px}.badge-notification{position:absolute;top:12px;right:12px;background:var(--danger);color:white;border-radius:30px;padding:2px 10px;font-size:0.65rem;font-weight:600;display:none}
+        .stats-mini{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}.stat-mini{background:var(--card-bg);border-radius:var(--radius-lg);padding:20px;text-align:center;border:1px solid var(--border);box-shadow:var(--shadow-sm)}.stat-mini-value{font-size:1.6rem;font-weight:700;color:var(--primary)}.stat-mini-label{font-size:0.7rem;color:var(--text-secondary);margin-top:4px;text-transform:uppercase;letter-spacing:0.5px}
+        .two-columns{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+
+        .data-table{width:100%;border-collapse:collapse;font-size:0.8rem}.data-table th,.data-table td{padding:12px 10px;text-align:left;border-bottom:1px solid var(--border)}.data-table th{color:var(--primary);font-weight:600;background:var(--primary-light);border-radius:8px 8px 0 0;font-size:0.7rem;text-transform:uppercase;letter-spacing:0.5px}.data-table tbody tr:hover{background:#FAFAFC}
+        .status-badge{display:inline-block;padding:3px 12px;border-radius:20px;font-size:0.65rem;font-weight:600}.status-active{background:#E8F5E9;color:#4CAF7A}.status-low{background:#FFF3E0;color:#FF9800}.status-empty{background:#FFEBEE;color:#E57373}.status-pending{background:#FFF3E0;color:#FF9800}
+
+        .form-group{margin-bottom:14px}.form-group label{display:block;font-size:0.7rem;font-weight:600;color:var(--text);margin-bottom:5px;text-transform:uppercase;letter-spacing:0.5px}.form-group input,.form-group select,.form-group textarea{width:100%;background:var(--bg);border:2px solid var(--border);border-radius:var(--radius-sm);padding:10px 14px;font-size:0.85rem;outline:none;font-family:inherit;transition:0.3s;resize:vertical}.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--primary);background:var(--white);box-shadow:0 0 0 3px rgba(107,78,158,0.08)}
+        .btn-primary{background:var(--primary);color:white;border:none;padding:10px 24px;border-radius:30px;font-weight:600;cursor:pointer;transition:0.2s;display:inline-flex;align-items:center;gap:7px;font-size:0.8rem}.btn-primary:hover{background:#5a3d8a;transform:translateY(-2px);box-shadow:0 6px 16px rgba(107,78,158,0.3)}.btn-primary:disabled{opacity:0.6;cursor:not-allowed}
+        .btn-success{background:var(--success);color:white;border:none;padding:6px 16px;border-radius:30px;font-size:0.7rem;cursor:pointer;font-weight:600}.btn-success:hover{background:#43A047}.btn-danger{background:var(--danger);color:white;border:none;padding:6px 16px;border-radius:30px;font-size:0.7rem;cursor:pointer;font-weight:600}.btn-danger:hover{background:#D32F2F}
+        .btn-outline{background:transparent;border:2px solid var(--border);padding:8px 18px;border-radius:30px;cursor:pointer;color:var(--text);font-weight:500;font-size:0.75rem;transition:0.2s;display:inline-flex;align-items:center;gap:6px}.btn-outline:hover{border-color:var(--primary);color:var(--primary);background:var(--primary-light)}
+        .btn-icon{background:transparent;border:none;color:var(--primary);cursor:pointer;padding:6px;border-radius:8px;transition:0.2s;font-size:0.9rem}.btn-icon:hover{background:var(--primary-light);color:var(--primary-dark)}.btn-icon.danger{color:var(--danger)}.btn-icon.danger:hover{background:#FFEBEE}
+        .activity-item{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--border);color:#444;font-size:0.8rem}.activity-item:last-child{border-bottom:none}
+        .modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.4);z-index:2000;align-items:center;justify-content:center}.modal-content{background:var(--white);border-radius:var(--radius-xl);padding:28px;width:500px;max-width:90%;box-shadow:0 16px 40px rgba(0,0,0,0.08)}.modal-content h3{margin-bottom:20px;font-size:1.1rem;display:flex;align-items:center;gap:8px}.modal-buttons{display:flex;gap:10px;margin-top:20px;justify-content:flex-end}
+        .chat-container{display:flex;flex-direction:column;height:420px;border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden}.chat-header{padding:14px;border-bottom:1px solid var(--border);background:#F5F3F7}.chat-header select{width:100%;padding:10px;border-radius:12px;border:1px solid var(--border);font-family:inherit}.chat-messages{flex:1;overflow-y:auto;padding:16px;background:#FAFAFC;display:flex;flex-direction:column;gap:10px}.chat-message{max-width:75%;padding:10px 16px;border-radius:18px;font-size:0.8rem;line-height:1.4}.chat-message.sent{background:var(--primary);color:white;align-self:flex-end;border-bottom-right-radius:6px}.chat-message.received{background:#FFF;border:1px solid var(--border);align-self:flex-start;border-bottom-left-radius:6px}.chat-message .msg-time{font-size:0.6rem;opacity:0.7;margin-top:4px}.chat-message .msg-sender{font-weight:600;font-size:0.7rem;margin-bottom:2px}.chat-input-area{display:flex;padding:12px;gap:10px;background:#FFF;border-top:1px solid var(--border)}.chat-input-area input{flex:1;border:2px solid var(--border);border-radius:30px;padding:10px 16px;font-size:0.8rem;outline:none;font-family:inherit}.chat-input-area button{background:var(--primary);color:white;border:none;width:42px;height:42px;border-radius:50%;cursor:pointer}
+        .plano-card{background:#FFF;border-radius:16px;padding:20px;margin-bottom:12px;border:2px solid #E8E4F0;display:flex;justify-content:space-between;align-items:center;transition:0.2s}.plano-card:hover{border-color:#6B4E9E}.plano-info h4{font-size:0.95rem;color:#2D1B4E;margin-bottom:4px}.plano-info span{font-size:0.7rem;color:#6B6B7A}.plano-preco{font-size:1.2rem;font-weight:700;color:#6B4E9E}.plano-tipo{display:inline-block;padding:3px 10px;border-radius:20px;font-size:0.6rem;font-weight:600}.tipo-avulso{background:#FFF3E0;color:#FF9800}.tipo-mensal{background:#E3F2FD;color:#5B8DEF}.tipo-parceria{background:#E8F5E9;color:#4CAF7A}
+        .toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%);background:var(--primary-dark);color:white;padding:10px 24px;border-radius:40px;font-size:0.8rem;z-index:3000;animation:fadeToast 0.3s ease;box-shadow:0 8px 24px rgba(0,0,0,0.25)}@keyframes fadeToast{from{opacity:0;transform:translateX(-50%) translateY(20px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+        @media(max-width:1000px){.tiles-grid,.stats-mini{grid-template-columns:repeat(2,1fr)}.two-columns{grid-template-columns:1fr}}@media(max-width:768px){.top-nav{flex-direction:column;padding:12px 16px}.main-content{padding:16px}}
     </style>
 </head>
 <body>
+
     <div id="loginContainer" class="login-container">
         <div class="login-card">
-            <div class="logo-icon"><i class="fas fa-brain" style="font-size: 2rem;"></i></div>
-            <h1>SYNAPSE</h1>
-            <p>plataforma de constelação familiar</p>
-            <input type="email" id="loginEmail" placeholder="E-mail" value="ana@synapse.com">
-            <input type="password" id="loginPassword" placeholder="Senha" value="123456">
-            <button id="doLoginBtn">Entrar</button>
-        </div>
-        <div class="creator">Matheus Pacifico Evangelista © 2026</div>
-    </div>
-
-    <div id="dashboard" class="dashboard" style="display: none;">
-        <div class="header">
-            <h2>✦ SYNAPSE</h2>
-            <button class="btn-primary" id="logoutBtn">Sair</button>
-        </div>
-        
-        <div class="stats">
-            <div class="stat-card"><div class="stat-number" id="statClientes">0</div><div class="stat-label">Clientes</div></div>
-            <div class="stat-card"><div class="stat-number" id="statAgendamentos">0</div><div class="stat-label">Agendamentos</div></div>
-            <div class="stat-card"><div class="stat-number" id="statCoins">0</div><div class="stat-label">Synapse Coins</div></div>
-            <div class="stat-card"><div class="stat-number" id="statConstelacoes">0</div><div class="stat-label">Constelações</div></div>
-        </div>
-        
-        <div class="card">
-            <div class="card-title">📋 Meus Clientes</div>
-            <button class="btn-primary" id="btnNovoCliente" style="margin-bottom:16px;">+ Novo Cliente</button>
-            <div id="clientesList"></div>
-        </div>
-        
-        <div class="card">
-            <div class="card-title">📅 Próximos Agendamentos</div>
-            <div id="agendamentosList"></div>
-        </div>
-        
-        <div class="card">
-            <div class="card-title">💰 Comprar Synapse Coins</div>
-            <div id="pacotesList" style="display: flex; gap: 16px; flex-wrap: wrap;"></div>
-        </div>
-        
-        <div class="card">
-            <div class="card-title">📝 Prontuário</div>
-            <select id="prontuarioSelect" style="width:100%; padding:10px; background:#1A202C; border:1px solid #2D3748; border-radius:12px; margin-bottom:16px; color:white;"></select>
-            <textarea id="prontuarioTexto" rows="4" style="width:100%; background:#1A202C; border:1px solid #2D3748; border-radius:12px; padding:12px; color:white;"></textarea>
-            <button class="btn-primary" id="btnSalvarProntuario" style="margin-top:12px;">Salvar Prontuário</button>
-        </div>
-        
-        <div class="card">
-            <div class="card-title">💬 Mensagens do Administrador</div>
-            <div id="mensagensList"></div>
-            <textarea id="novaMensagem" rows="3" style="width:100%; background:#1A202C; border:1px solid #2D3748; border-radius:12px; padding:12px; color:white; margin-top:16px;" placeholder="Digite sua mensagem..."></textarea>
-            <button class="btn-primary" id="btnEnviarMsg" style="margin-top:8px;">Enviar Mensagem</button>
-        </div>
-        
-        <div class="card">
-            <div class="card-title">🎯 Sala de Constelação</div>
-            <button class="btn-primary" id="btnAbrirConstelacao" style="width:100%;">Iniciar Constelação</button>
+            <div class="logo-icon"><i class="fas fa-brain"></i></div>
+            <h1>SYNAPSE ADMIN</h1>
+            <div class="subtitle">Painel do Administrador · v1.0</div>
+            <input type="email" id="loginEmail" placeholder="E-mail">
+            <input type="password" id="loginPassword" placeholder="Senha">
+            <div class="loading-spinner" id="loginSpinner"></div>
+            <button id="btnLogin"><i class="fas fa-sign-in-alt"></i> Entrar no Sistema</button>
+            <div id="loginError" class="error-msg">E-mail ou senha incorretos</div>
+            <div class="login-footer"><strong>Matheus Pacifico Evangelista</strong> © 2026<br>Todos os direitos reservados<br><i class="fab fa-whatsapp"></i> <span class="whatsapp">(79) 99645-8399</span></div>
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <div id="dashboard" style="display:none">
+        <div class="top-nav">
+            <div class="logo-area"><i class="fas fa-brain"></i><h1>SYNAPSE ADMIN</h1></div>
+            <div class="nav-buttons">
+                <button class="nav-btn active" data-panel="iniciar"><i class="fas fa-home"></i> Iniciar</button>
+                <button class="nav-btn" data-panel="terapeutas"><i class="fas fa-users"></i> Terapeutas</button>
+                <button class="nav-btn" data-panel="recargas"><i class="fas fa-coins"></i> Recargas</button>
+                <button class="nav-btn" data-panel="planos"><i class="fas fa-crown"></i> Planos</button>
+                <button class="nav-btn" data-panel="mensagens"><i class="fas fa-comments"></i> Chat</button>
+                <button class="nav-btn" data-panel="backup"><i class="fas fa-database"></i> Backup</button>
+                <button class="nav-btn" data-panel="conta"><i class="fas fa-user-cog"></i> Conta</button>
+            </div>
+        </div>
+        <div class="main-content">
+            <div class="page-header"><h1 id="pageTitle">Iniciar</h1><p id="pageDesc"></p></div>
+            <div id="panelIniciar" class="panel active">
+                <div class="tiles-grid">
+                    <div class="tile" onclick="mudarPainel('terapeutas')"><div class="tile-icon"><i class="fas fa-users"></i></div><div class="tile-value" id="tileTotal">0</div><div class="tile-label">Terapeutas Ativos</div></div>
+                    <div class="tile" onclick="mudarPainel('recargas')"><div class="tile-icon"><i class="fas fa-clock"></i></div><div class="tile-value" id="tilePendentes">0</div><div class="tile-label">Recargas Pendentes</div></div>
+                    <div class="tile" onclick="mudarPainel('recargas')"><div class="tile-icon"><i class="fas fa-coins"></i></div><div class="tile-value" id="tileReceita">R$ 0</div><div class="tile-label">Receita Total</div></div>
+                    <div class="tile" onclick="mudarPainel('mensagens')"><div class="tile-icon"><i class="fas fa-envelope"></i></div><div class="tile-value" id="tileMensagens">0</div><div class="tile-label">Mensagens</div><span class="badge-notification" id="mensagensBadge">Novas</span></div>
+                </div>
+                <div class="two-columns"><div class="card"><h3><i class="fas fa-clock"></i> Últimas Recargas</h3><div id="activitiesList"></div></div><div class="card"><h3><i class="fas fa-trophy"></i> Top Terapeutas</h3><div id="topList"></div></div></div>
+            </div>
+            <div id="panelTerapeutas" class="panel">
+                <div class="stats-mini"><div class="stat-mini"><div class="stat-mini-value" id="statTotal">0</div><div class="stat-mini-label">Total</div></div><div class="stat-mini"><div class="stat-mini-value" id="statAtivos">0</div><div class="stat-mini-label">Ativos</div></div><div class="stat-mini"><div class="stat-mini-value" id="statSaldo">0</div><div class="stat-mini-label">Synapse Coins</div></div><div class="stat-mini"><div class="stat-mini-value" id="statConstelacoes">0</div><div class="stat-mini-label">Constelações</div></div></div>
+                <div class="card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px"><h3 style="margin-bottom:0"><i class="fas fa-list"></i> Terapeutas</h3><button class="btn-primary" id="btnNovoTerapeuta"><i class="fas fa-plus"></i> Novo</button></div><div id="terapeutasListContainer"></div></div>
+            </div>
+            <div id="panelRecargas" class="panel">
+                <div class="stats-mini"><div class="stat-mini"><div class="stat-mini-value" id="statPendentesRec">0</div><div class="stat-mini-label">Pendentes</div></div><div class="stat-mini"><div class="stat-mini-value" id="statAprovadas">0</div><div class="stat-mini-label">Aprovadas</div></div><div class="stat-mini"><div class="stat-mini-value" id="statTotalRecargas">R$ 0</div><div class="stat-mini-label">Valor Total</div></div><div class="stat-mini"><div class="stat-mini-value" id="statCreditosDados">0</div><div class="stat-mini-label">Coins</div></div></div>
+                <div class="card"><h3><i class="fas fa-clock"></i> Solicitações Pendentes</h3><div id="solicitacoesListContainer"></div></div>
+                <div class="card"><h3><i class="fas fa-plus-circle"></i> Adicionar Créditos</h3><div style="display:flex;gap:16px;flex-wrap:wrap;align-items:flex-end"><div style="flex:2"><select id="creditoTerapeuta" style="width:100%;padding:10px;border-radius:12px;border:1px solid #E8E4F0"></select></div><div style="flex:2"><select id="pacoteSelect" style="width:100%;padding:10px;border-radius:12px;border:1px solid #E8E4F0"><option value="5|20.00">5 Coins - R$20</option><option value="20|49.90">20 Coins - R$49,90</option><option value="50|79.90">50 Coins - R$79,90</option><option value="100|99.00">100 Coins - R$99</option></select></div><div><button class="btn-primary" id="btnAddCreditoManual"><i class="fas fa-plus"></i> Adicionar</button></div></div></div>
+                <div class="card"><h3><i class="fas fa-check-circle"></i> Histórico</h3><div id="recargasAprovadasContainer"></div></div>
+            </div>
+            <div id="panelPlanos" class="panel"><div class="card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px"><h3 style="margin-bottom:0"><i class="fas fa-crown"></i> Planos</h3><button class="btn-primary" onclick="abrirModalPlano()"><i class="fas fa-plus"></i> Criar</button></div><div id="planosListContainer"></div></div></div>
+            <div id="panelMensagens" class="panel">
+                <div class="two-columns"><div class="card"><h3><i class="fas fa-comments"></i> Chat</h3><div class="chat-container"><div class="chat-header"><select id="chatTerapeutaSelect"><option value="">Selecione</option></select></div><div class="chat-messages" id="adminChatMessages"><p style="text-align:center;color:#6B6B7A;padding:40px">Selecione um terapeuta</p></div><div class="chat-input-area"><input type="text" id="adminChatInput" placeholder="Digite..."><button onclick="enviarMensagemAdmin()"><i class="fas fa-paper-plane"></i></button></div></div></div><div class="card"><h3><i class="fas fa-envelope"></i> Mensagens</h3><div id="mensagensListContainer"></div></div></div>
+            </div>
+            <div id="panelBackup" class="panel"><div class="card"><h3><i class="fas fa-database"></i> Backup Local</h3><p style="color:var(--text-secondary);margin-bottom:16px">Salve dados do localStorage.</p><div style="display:flex;gap:16px"><button class="btn-primary" id="btnFazerBackup"><i class="fas fa-download"></i> Fazer Backup</button><button class="btn-outline" id="btnRestaurarBackup"><i class="fas fa-upload"></i> Restaurar</button></div></div></div>
+            <div id="panelConta" class="panel">
+                <div class="card"><h3><i class="fas fa-user-cog"></i> Configurações</h3><div class="form-group"><label>Nome</label><input type="text" id="adminName" value="Matheus Pacifico Evangelista"></div><div class="form-group"><label>E-mail</label><input type="email" id="adminEmail" value="admin@synapse.com"></div><div class="form-group"><label>Nova Senha</label><input type="password" id="newPassword" placeholder="Nova senha"></div><button class="btn-primary" id="btnAlterarSenha"><i class="fas fa-key"></i> Alterar Senha</button></div>
+                <div class="card"><h3><i class="fas fa-copyright"></i> Créditos</h3><p><strong>Matheus Pacifico Evangelista</strong> © 2026</p><p>Versão 1.0 · Synapse Admin + Supabase</p><p><i class="fab fa-whatsapp"></i> (79) 99645-8399</p></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="modalTerapeuta" class="modal"><div class="modal-content"><h3 id="modalTitle"><i class="fas fa-user"></i> Terapeuta</h3><input type="hidden" id="editId"><div class="form-group"><label>Nome</label><input type="text" id="nomeTerapeuta"></div><div class="form-group"><label>E-mail</label><input type="email" id="emailTerapeuta" placeholder="nome@synapse.com"></div><div class="form-group"><label>Telefone</label><input type="text" id="telefoneTerapeuta"></div><div class="form-group"><label>Senha</label><input type="password" id="senhaTerapeuta"></div><div class="form-group"><label>Status</label><select id="statusTerapeuta"><option value="ativo">Ativo</option><option value="inativo">Inativo</option></select></div><div class="modal-buttons"><button class="btn-primary" id="btnSalvarTerapeuta"><i class="fas fa-save"></i> Salvar</button><button class="btn-outline" id="btnFecharModal">Cancelar</button></div></div></div>
+    <div id="modalPlano" class="modal"><div class="modal-content"><h3 id="modalPlanoTitle"><i class="fas fa-crown"></i> Plano</h3><input type="hidden" id="editPlanoId"><div class="form-group"><label>Nome</label><input type="text" id="planoNome"></div><div class="form-group"><label>Tipo</label><select id="planoTipo"><option value="avulso">Avulso</option><option value="mensal">Mensal</option></select></div><div class="form-group"><label>Preço (R$)</label><input type="number" id="planoPreco" step="0.01"></div><div class="form-group"><label>Synapse Coins</label><input type="number" id="planoCoins"></div><div class="form-group"><label>Status</label><select id="planoStatus"><option value="ativo">Ativo</option><option value="inativo">Inativo</option></select></div><div class="modal-buttons"><button class="btn-primary" onclick="salvarPlano()"><i class="fas fa-save"></i> Salvar</button><button class="btn-outline" onclick="fecharModal('modalPlano')">Cancelar</button></div></div></div>
+
     <script>
+        // ============ SUPABASE (ÚNICA DECLARAÇÃO) ============
         const SUPABASE_URL = 'https://wedhebcoxljyeoxhgaob.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndlZGhlYmNveGxqeWVveGhnYW9iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY4OTgwNDgsImV4cCI6MjA5MjQ3NDA0OH0._Xnqxp6YSazOK37xP5qSi5gOuThvqGm5Kw_xmWZU8XQ';
-        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        
-        let currentUser = null;
-        
-        async function login(email, senha) {
-            const { data, error } = await supabase
-                .from('terapeutas')
-                .select('*')
-                .eq('email', email)
-                .eq('senha', senha)
-                .single();
-            if (error || !data) throw new Error('Credenciais inválidas');
-            if (data.is_admin) throw new Error('Use o painel administrativo');
-            return data;
-        }
-        
-        async function carregarDados() {
-            if (!currentUser) return;
-            
-            const { data: clientes } = await supabase.from('clientes').select('*').eq('terapeuta_id', currentUser.id);
-            document.getElementById('statClientes').innerText = clientes?.length || 0;
-            document.getElementById('statCoins').innerText = currentUser.saldo;
-            document.getElementById('statConstelacoes').innerText = currentUser.constelacoes;
-            
-            let html = '<table><thead><tr><th>Nome</th><th>Telefone</th><th>Ações</th></tr></thead><tbody>';
-            clientes?.forEach(c => {
-                html += `<tr><td>${c.nome}</td><td>${c.telefone || '-'}</td><td><button class="btn-icon" onclick="editarCliente('${c.id}')"><i class="fas fa-edit"></i></button><button class="btn-icon" onclick="excluirCliente('${c.id}')"><i class="fas fa-trash"></i></button></td></tr>`;
-            });
-            html += '</tbody></table>';
-            document.getElementById('clientesList').innerHTML = html;
-            
-            // Pacotes
-            const { data: pacotes } = await supabase.from('pacotes').select('*');
-            let pacotesHtml = '';
-            pacotes?.forEach(p => {
-                pacotesHtml += `<div style="background:#1A202C; padding:16px; border-radius:16px; text-align:center; width:120px;"><div>${p.nome}</div><div style="font-size:1.2rem; font-weight:bold;">${p.qtd} coins</div><div>R$ ${p.valor}</div><button class="btn-primary" onclick="solicitarRecarga('${p.nome}', ${p.qtd}, ${p.valor})" style="margin-top:8px; padding:6px;">Comprar</button></div>`;
-            });
-            document.getElementById('pacotesList').innerHTML = pacotesHtml;
-            
-            // Mensagens
-            const { data: mensagens } = await supabase.from('mensagens').select('*').eq('terapeuta_id', currentUser.id).order('data', { ascending: false });
-            let msgHtml = '';
-            mensagens?.forEach(m => {
-                msgHtml += `<div style="background:#1A202C; padding:12px; border-radius:12px; margin-bottom:8px;"><strong>${m.is_admin ? '📢 Admin' : '👤 Você'}</strong><br>${m.mensagem}<br><small style="color:#8a99b4;">${new Date(m.data).toLocaleString()}</small></div>`;
-            });
-            document.getElementById('mensagensList').innerHTML = msgHtml || '<p>Nenhuma mensagem</p>';
-        }
-        
-        window.solicitarRecarga = async (pacote, qtd, valor) => {
-            await supabase.from('solicitacoes_recarga').insert({
-                terapeuta_id: currentUser.id,
-                terapeuta_nome: currentUser.nome,
-                pacote_nome: pacote,
-                qtd: qtd,
-                valor: valor
-            });
-            showToast('Solicitação enviada! Aguarde aprovação do administrador.');
-        };
-        
-        window.editarCliente = async (id) => {
-            const novoNome = prompt('Novo nome:');
-            if (novoNome) {
-                await supabase.from('clientes').update({ nome: novoNome }).eq('id', id);
-                carregarDados();
-            }
-        };
-        
-        window.excluirCliente = async (id) => {
-            if (confirm('Excluir cliente?')) {
-                await supabase.from('clientes').delete().eq('id', id);
-                carregarDados();
-            }
-        };
-        
-        document.getElementById('btnNovoCliente').onclick = async () => {
-            const nome = prompt('Nome do cliente:');
-            if (nome) {
-                await supabase.from('clientes').insert({ terapeuta_id: currentUser.id, nome });
-                carregarDados();
-            }
-        };
-        
-        document.getElementById('btnSalvarProntuario').onclick = async () => {
-            const clienteId = document.getElementById('prontuarioSelect').value;
-            const texto = document.getElementById('prontuarioTexto').value;
-            if (clienteId) {
-                await supabase.from('prontuarios').upsert({ terapeuta_id: currentUser.id, cliente_id: clienteId, observacoes: texto });
-                showToast('Prontuário salvo');
-            }
-        };
-        
-        document.getElementById('btnEnviarMsg').onclick = async () => {
-            const msg = document.getElementById('novaMensagem').value;
-            if (msg) {
-                await supabase.from('mensagens').insert({ terapeuta_id: currentUser.id, terapeuta_nome: currentUser.nome, mensagem: msg });
-                document.getElementById('novaMensagem').value = '';
-                carregarDados();
-                showToast('Mensagem enviada');
-            }
-        };
-        
-        document.getElementById('btnAbrirConstelacao').onclick = () => {
-            window.location.href = 'constelacao.html';
-        };
-        
-        function showToast(msg) {
-            const toast = document.createElement('div');
-            toast.className = 'toast';
-            toast.innerText = msg;
-            document.body.appendChild(toast);
-            setTimeout(() => toast.remove(), 2500);
-        }
-        
-        document.getElementById('doLoginBtn').onclick = async () => {
-            const email = document.getElementById('loginEmail').value;
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndlZGhlYmNveGxqeWVveGhnYW9iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY4OTgwNDgsImV4cCI6MjA5MjQ3NDA0OH0._Xnqxp6YSazOK37xP5qSi5gOuThvqGm5Kw_xmWZU8XQ';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        let terapeutas = [], solicitacoes = [], planos = [], mensagens = [];
+        let chatAtivo = null, adminLogado = null;
+
+        // ============ LOGIN ============
+        document.getElementById('btnLogin').onclick = fazerLogin;
+        document.getElementById('loginPassword').addEventListener('keypress', e => { if(e.key==='Enter') fazerLogin(); });
+
+        async function fazerLogin() {
+            const email = document.getElementById('loginEmail').value.trim();
             const senha = document.getElementById('loginPassword').value;
-            try {
-                currentUser = await login(email, senha);
-                document.getElementById('loginContainer').style.display = 'none';
-                document.getElementById('dashboard').style.display = 'block';
-                await carregarDados();
-            } catch (err) {
-                alert(err.message);
-            }
-        };
-        
-        document.getElementById('logoutBtn').onclick = () => {
-            currentUser = null;
-            document.getElementById('loginContainer').style.display = 'flex';
-            document.getElementById('dashboard').style.display = 'none';
-        };
-        
-        // Carregar clientes no select do prontuário
-        async function carregarClientesSelect() {
-            const { data } = await supabase.from('clientes').select('id, nome').eq('terapeuta_id', currentUser?.id);
-            const select = document.getElementById('prontuarioSelect');
-            if (select && data) {
-                select.innerHTML = '<option value="">Selecione um cliente</option>' + data.map(c => `<option value="${c.id}">${c.nome}</option>`).join('');
-            }
+            const spinner = document.getElementById('loginSpinner');
+            const btn = document.getElementById('btnLogin');
+            const err = document.getElementById('loginError');
+            if(!email||!senha){err.textContent='Preencha todos os campos';err.classList.add('show');return}
+            spinner.style.display='block';btn.disabled=true;err.classList.remove('show');
+            const{data,error}=await supabase.from('terapeutas').select('*').eq('email',email).eq('senha',senha).eq('status','ativo').single();
+            spinner.style.display='none';btn.disabled=false;
+            if(error||!data){err.textContent='E-mail ou senha incorretos';err.classList.add('show');return}
+            if(data.email!=='admin@synapse.com'){err.textContent='Acesso restrito ao administrador';err.classList.add('show');return}
+            adminLogado=data;document.getElementById('loginContainer').style.display='none';document.getElementById('dashboard').style.display='block';document.getElementById('adminName').value=data.nome||'Admin';await carregarTudo();showToast('✅ Bem-vindo!');
         }
-        
-        setInterval(() => { if (currentUser) carregarClientesSelect(); }, 1000);
+
+        async function carregarTudo(){await Promise.all([carregarTerapeutas(),carregarSolicitacoes(),carregarPlanos(),carregarMensagens()]);atualizarDashboard()}
+
+        // ============ TERAPEUTAS ============
+        async function carregarTerapeutas(){const{data}=await supabase.from('terapeutas').select('*').order('nome');terapeutas=data||[];renderTerapeutas();popularSelects();popularChatSelect()}
+        function renderTerapeutas(){
+            const c=document.getElementById('terapeutasListContainer');if(!c)return;if(terapeutas.length===0){c.innerHTML='<p style="text-align:center;color:#6B6B7A;padding:40px">Nenhum terapeuta</p>';return}
+            c.innerHTML=`<table class="data-table"><thead><tr><th>Nome</th><th>E-mail</th><th>Coins</th><th>Constelações</th><th>Status</th><th>Ações</th></tr></thead><tbody>${terapeutas.map(t=>{const sc=t.saldo===0?'status-empty':(t.saldo<=5?'status-low':'status-active');return`<tr><td><strong>${t.nome}</strong></td><td>${t.email}</td><td style="font-weight:bold;color:#6B4E9E">${t.saldo||0}</td><td>${t.constelacoes_realizadas||0}</td><td><span class="status-badge ${t.status==='ativo'?sc:'status-empty'}">${t.status==='ativo'?'Ativo':'Inativo'}</span></td><td>${t.email!=='admin@synapse.com'?`<button class="btn-icon" onclick="editarTerapeuta('${t.id}')"><i class="fas fa-edit"></i></button><button class="btn-icon" onclick="toggleStatusTerapeuta('${t.id}')"><i class="fas ${t.status==='ativo'?'fa-ban':'fa-check-circle'}"></i></button><button class="btn-icon danger" onclick="excluirTerapeuta('${t.id}')"><i class="fas fa-trash-alt"></i></button>`:'<span style="font-size:0.65rem;color:#6B6B7A">Admin</span>'}</td></tr>`}).join('')}</tbody></table>`;
+            document.getElementById('statTotal').textContent=terapeutas.length;document.getElementById('statAtivos').textContent=terapeutas.filter(t=>t.status==='ativo').length;document.getElementById('statSaldo').textContent=terapeutas.reduce((s,t)=>s+(t.saldo||0),0);document.getElementById('statConstelacoes').textContent=terapeutas.reduce((s,t)=>s+(t.constelacoes_realizadas||0),0);
+        }
+        async function editarTerapeuta(id){const t=terapeutas.find(t=>t.id==id);if(!t)return;document.getElementById('modalTitle').innerHTML='<i class="fas fa-edit"></i> Editar Terapeuta';document.getElementById('editId').value=t.id;document.getElementById('nomeTerapeuta').value=t.nome;document.getElementById('emailTerapeuta').value=t.email;document.getElementById('telefoneTerapeuta').value=t.telefone||'';document.getElementById('senhaTerapeuta').value='';document.getElementById('statusTerapeuta').value=t.status;document.getElementById('modalTerapeuta').style.display='flex'}
+        async function salvarTerapeuta(){const id=document.getElementById('editId').value;const d={nome:document.getElementById('nomeTerapeuta').value,email:document.getElementById('emailTerapeuta').value,telefone:document.getElementById('telefoneTerapeuta').value,status:document.getElementById('statusTerapeuta').value};const s=document.getElementById('senhaTerapeuta').value;if(s)d.senha=s;if(id){await supabase.from('terapeutas').update(d).eq('id',id);showToast('Atualizado!')}else{d.senha=d.senha||'123456';d.saldo=0;d.constelacoes_realizadas=0;await supabase.from('terapeutas').insert([d]);showToast('Adicionado!')}document.getElementById('modalTerapeuta').style.display='none';await carregarTerapeutas()}
+        async function toggleStatusTerapeuta(id){const t=terapeutas.find(t=>t.id==id);if(!t)return;await supabase.from('terapeutas').update({status:t.status==='ativo'?'inativo':'ativo'}).eq('id',id);await carregarTerapeutas();showToast('Status alterado!')}
+        async function excluirTerapeuta(id){if(!confirm('Excluir?'))return;await supabase.from('terapeutas').delete().eq('id',id);await carregarTerapeutas();showToast('Removido!')}
+        function popularSelects(){const s=document.getElementById('creditoTerapeuta');if(s)s.innerHTML=terapeutas.filter(t=>t.status==='ativo'&&t.email!=='admin@synapse.com').map(t=>`<option value="${t.id}">${t.nome} (${t.saldo||0} coins)</option>`).join('')}
+
+        // ============ RECARGAS ============
+        async function carregarSolicitacoes(){const{data}=await supabase.from('solicitacoes_recarga').select('*').order('data_solicitacao',{ascending:false});solicitacoes=data||[];renderSolicitacoes();document.getElementById('statPendentesRec').textContent=solicitacoes.filter(s=>s.status==='pendente').length}
+        function renderSolicitacoes(){const c=document.getElementById('solicitacoesListContainer');if(!c)return;const p=solicitacoes.filter(s=>s.status==='pendente');if(p.length===0){c.innerHTML='<p style="text-align:center;color:#6B6B7A;padding:20px">Nenhuma pendente</p>';return}c.innerHTML=`<table class="data-table"><thead><tr><th>Data</th><th>Terapeuta</th><th>Plano</th><th>Coins</th><th>Valor</th><th>Ações</th></tr></thead><tbody>${p.map(s=>`<tr><td>${new Date(s.data_solicitacao).toLocaleDateString('pt-BR')}</td><td>${s.terapeuta_nome}</td><td>${s.plano_nome}</td><td>${s.qtd_coins}</td><td>R$ ${s.valor.toFixed(2)}</td><td><button class="btn-success" onclick="aprovarSolicitacao('${s.id}')"><i class="fas fa-check"></i> Aprovar</button> <button class="btn-danger" onclick="recusarSolicitacao('${s.id}')"><i class="fas fa-times"></i> Recusar</button></td></tr>`).join('')}</tbody></table>`}
+        async function aprovarSolicitacao(id){const s=solicitacoes.find(s=>s.id==id);if(!s)return;await supabase.from('terapeutas').update({saldo:s.qtd_coins}).eq('id',s.terapeuta_id);await supabase.from('solicitacoes_recarga').update({status:'aprovada'}).eq('id',id);await carregarSolicitacoes();await carregarTerapeutas();atualizarDashboard();showToast(`✅ +${s.qtd_coins} Coins para ${s.terapeuta_nome}`)}
+        async function recusarSolicitacao(id){await supabase.from('solicitacoes_recarga').update({status:'recusada'}).eq('id',id);await carregarSolicitacoes();showToast('❌ Recusada')}
+        async function adicionarCreditoManual(){const tid=document.getElementById('creditoTerapeuta').value;const pd=document.getElementById('pacoteSelect').value.split('|');if(!tid){showToast('Selecione um terapeuta');return}const t=terapeutas.find(t=>t.id==tid);if(!t)return;const q=parseInt(pd[0]),v=parseFloat(pd[1]);await supabase.from('terapeutas').update({saldo:q}).eq('id',tid);await supabase.from('solicitacoes_recarga').insert([{terapeuta_id:tid,terapeuta_nome:t.nome,terapeuta_email:t.email,plano_nome:`${q} Coins`,qtd_coins:q,valor:v,tipo:'manual',status:'aprovada'}]);await carregarTerapeutas();await carregarSolicitacoes();atualizarDashboard();showToast(`✅ ${q} Coins para ${t.nome}`)}
+
+        // ============ PLANOS ============
+        async function carregarPlanos(){const{data}=await supabase.from('planos').select('*').order('id');planos=data||[];renderPlanos()}
+        function renderPlanos(){const c=document.getElementById('planosListContainer');if(!c)return;if(planos.length===0){c.innerHTML='<p style="text-align:center;color:#6B6B7A">Nenhum plano</p>';return}c.innerHTML=planos.map(p=>`<div class="plano-card"><div class="plano-info"><h4>${p.nome} <span class="plano-tipo tipo-${p.tipo}">${p.tipo}</span></h4><span>${p.coins} Synapse Coins</span></div><div style="text-align:right"><div class="plano-preco">R$ ${p.preco.toFixed(2)}</div><button class="btn-icon" onclick="abrirModalPlano(${p.id})"><i class="fas fa-edit"></i></button><button class="btn-icon" onclick="togglePlano(${p.id})"><i class="fas fa-power-off"></i></button></div></div>`).join('')}
+        function abrirModalPlano(id){document.getElementById('modalPlano').style.display='flex';if(id){const p=planos.find(p=>p.id==id);if(!p)return;document.getElementById('modalPlanoTitle').innerHTML='<i class="fas fa-edit"></i> Editar Plano';document.getElementById('editPlanoId').value=p.id;document.getElementById('planoNome').value=p.nome;document.getElementById('planoTipo').value=p.tipo;document.getElementById('planoPreco').value=p.preco;document.getElementById('planoCoins').value=p.coins;document.getElementById('planoStatus').value=p.status}else{document.getElementById('modalPlanoTitle').innerHTML='<i class="fas fa-plus"></i> Novo Plano';document.getElementById('editPlanoId').value='';document.getElementById('planoNome').value='';document.getElementById('planoTipo').value='avulso';document.getElementById('planoPreco').value='';document.getElementById('planoCoins').value='';document.getElementById('planoStatus').value='ativo'}}
+        async function salvarPlano(){const id=document.getElementById('editPlanoId').value;const d={nome:document.getElementById('planoNome').value,tipo:document.getElementById('planoTipo').value,preco:parseFloat(document.getElementById('planoPreco').value)||0,coins:parseInt(document.getElementById('planoCoins').value)||0,status:document.getElementById('planoStatus').value};if(id)await supabase.from('planos').update(d).eq('id',id);else await supabase.from('planos').insert([d]);document.getElementById('modalPlano').style.display='none';await carregarPlanos();showToast('Plano salvo!')}
+        async function togglePlano(id){const p=planos.find(p=>p.id==id);if(!p)return;await supabase.from('planos').update({status:p.status==='ativo'?'inativo':'ativo'}).eq('id',id);await carregarPlanos()}
+
+        // ============ MENSAGENS ============
+        async function carregarMensagens(){const{data}=await supabase.from('mensagens').select('*').order('data',{ascending:false}).limit(50);mensagens=data||[];renderMensagensList()}
+        function renderMensagensList(){const c=document.getElementById('mensagensListContainer');if(!c)return;const msgs=mensagens.filter(m=>!m.is_admin).slice(0,20);if(msgs.length===0){c.innerHTML='<p style="text-align:center;color:#6B6B7A">Nenhuma</p>';return}c.innerHTML=msgs.map(m=>`<div style="background:#F5F3F7;border-radius:12px;padding:10px;margin-bottom:6px;border-left:3px solid #6B4E9E"><div style="display:flex;justify-content:space-between;margin-bottom:3px"><strong>${m.terapeuta_nome}</strong><span style="font-size:0.6rem;color:#6B6B7A">${new Date(m.data).toLocaleString('pt-BR')}</span></div><div style="font-size:0.78rem">${m.mensagem}</div>${!m.lida?'<span style="background:#6B4E9E;color:white;padding:2px 6px;border-radius:10px;font-size:0.55rem">Nova</span>':''}</div>`).join('');document.getElementById('tileMensagens').textContent=mensagens.filter(m=>!m.is_admin&&!m.lida).length;document.getElementById('mensagensBadge').style.display=mensagens.filter(m=>!m.is_admin&&!m.lida).length>0?'block':'none'}
+        function popularChatSelect(){const s=document.getElementById('chatTerapeutaSelect');if(!s)return;s.innerHTML='<option value="">Selecione</option>'+terapeutas.filter(t=>t.email!=='admin@synapse.com').map(t=>`<option value="${t.id}">${t.nome}</option>`).join('');s.onchange=async function(){chatAtivo=this.value;await renderAdminChat()}}
+        async function renderAdminChat(){const c=document.getElementById('adminChatMessages');if(!c)return;if(!chatAtivo){c.innerHTML='<p style="text-align:center;color:#6B6B7A;padding:40px">Selecione um terapeuta</p>';return}const{data}=await supabase.from('mensagens').select('*').or(`terapeuta_id.eq.${chatAtivo},is_admin.eq.true`).order('data',{ascending:true});const msgs=data||[];if(msgs.length===0){c.innerHTML='<p style="text-align:center;color:#6B6B7A;padding:40px">Nenhuma mensagem</p>';return}const t=terapeutas.find(t=>t.id==chatAtivo);c.innerHTML=msgs.map(m=>`<div class="chat-message ${m.is_admin?'sent':'received'}"><div class="msg-sender">${m.is_admin?'Você':(t?.nome||'Terapeuta')}</div>${m.mensagem}<div class="msg-time">${new Date(m.data).toLocaleString('pt-BR')}</div></div>`).join('');c.scrollTop=c.scrollHeight}
+        async function enviarMensagemAdmin(){const i=document.getElementById('adminChatInput');const m=i.value.trim();if(!m||!chatAtivo)return;const t=terapeutas.find(t=>t.id==chatAtivo);await supabase.from('mensagens').insert([{terapeuta_id:chatAtivo,terapeuta_nome:t?.nome,mensagem:m,is_admin:true,lida:true}]);i.value='';await renderAdminChat();await carregarMensagens()}
+
+        // ============ DASHBOARD ============
+        function atualizarDashboard(){const ativos=terapeutas.filter(t=>t.status==='ativo').length;const pend=solicitacoes.filter(s=>s.status==='pendente').length;document.getElementById('tileTotal').textContent=ativos;document.getElementById('tilePendentes').textContent=pend;document.getElementById('tileReceita').textContent='R$ '+solicitacoes.filter(s=>s.status==='aprovada').reduce((s,r)=>s+(r.valor||0),0).toFixed(2);document.getElementById('statAprovadas').textContent=solicitacoes.filter(s=>s.status==='aprovada').length;document.getElementById('statTotalRecargas').textContent='R$ '+solicitacoes.filter(s=>s.status==='aprovada').reduce((s,r)=>s+(r.valor||0),0).toFixed(2);document.getElementById('statCreditosDados').textContent=solicitacoes.filter(s=>s.status==='aprovada').reduce((s,r)=>s+(r.qtd_coins||0),0);const ac=document.getElementById('activitiesList');if(ac){const ult=solicitacoes.filter(s=>s.status==='aprovada').slice(0,3);ac.innerHTML=ult.length>0?ult.map(r=>`<div class="activity-item"><span><i class="fas fa-shopping-cart"></i> ${r.terapeuta_nome}</span><span>R$ ${r.valor.toFixed(2)}</span></div>`).join(''):'<div class="activity-item">Nenhuma</div>'}const tp=document.getElementById('topList');if(tp){const t=[...terapeutas].filter(t=>t.status==='ativo').sort((a,b)=>(b.constelacoes_realizadas||0)-(a.constelacoes_realizadas||0)).slice(0,3);tp.innerHTML=t.length>0?t.map(t=>`<div class="activity-item"><span><i class="fas fa-star"></i> ${t.nome}</span><span>${t.constelacoes_realizadas||0}</span></div>`).join(''):'<div class="activity-item">Nenhum</div>'}}
+
+        // ============ BACKUP ============
+        function fazerBackup(){localStorage.setItem('synapse_backup_v1',JSON.stringify({terapeutas,solicitacoes,planos,mensagens}));showToast('✅ Backup local!')}
+        async function restaurarBackup(){const b=localStorage.getItem('synapse_backup_v1');if(!b){showToast('Nenhum backup');return}showToast('Restaurado (dados locais)');await carregarTudo()}
+
+        // ============ CONTA ============
+        async function alterarSenha(){const s=document.getElementById('newPassword').value;if(!s||s.length<6){showToast('Mínimo 6 caracteres');return}if(adminLogado){await supabase.from('terapeutas').update({senha:s}).eq('id',adminLogado.id);showToast('Senha alterada!');document.getElementById('newPassword').value=''}}
+
+        function fecharModal(id){document.getElementById(id).style.display='none'}
+        function showToast(msg){const t=document.createElement('div');t.className='toast';t.textContent=msg;document.body.appendChild(t);setTimeout(()=>t.remove(),2500)}
+        function mudarPainel(p){document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));const m={iniciar:'panelIniciar',terapeutas:'panelTerapeutas',recargas:'panelRecargas',planos:'panelPlanos',mensagens:'panelMensagens',backup:'panelBackup',conta:'panelConta'};document.getElementById(m[p]).classList.add('active');document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));document.querySelector(`.nav-btn[data-panel="${p}"]`).classList.add('active');document.getElementById('pageTitle').textContent={iniciar:'Iniciar',terapeutas:'Terapeutas',recargas:'Recargas',planos:'Planos',mensagens:'Chat',backup:'Backup',conta:'Conta'}[p]}
+        function atualizarHora(){const a=new Date();document.getElementById('pageDesc').innerHTML=`<i class="far fa-calendar-alt"></i> ${a.toLocaleDateString('pt-BR',{weekday:'long',year:'numeric',month:'long',day:'numeric'})} · <i class="far fa-clock"></i> ${a.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}`}
+        setInterval(atualizarHora,1000);atualizarHora();
+
+        document.querySelectorAll('.nav-btn[data-panel]').forEach(b=>b.addEventListener('click',()=>mudarPainel(b.dataset.panel)));
+        document.getElementById('btnNovoTerapeuta').onclick=()=>{document.getElementById('modalTitle').innerHTML='<i class="fas fa-user-plus"></i> Novo Terapeuta';document.getElementById('editId').value='';document.getElementById('nomeTerapeuta').value='';document.getElementById('emailTerapeuta').value='';document.getElementById('telefoneTerapeuta').value='';document.getElementById('senhaTerapeuta').value='';document.getElementById('statusTerapeuta').value='ativo';document.getElementById('modalTerapeuta').style.display='flex'};
+        document.getElementById('btnSalvarTerapeuta').onclick=salvarTerapeuta;
+        document.getElementById('btnFecharModal').onclick=()=>fecharModal('modalTerapeuta');
+        document.getElementById('btnAddCreditoManual').onclick=adicionarCreditoManual;
+        document.getElementById('btnFazerBackup').onclick=fazerBackup;
+        document.getElementById('btnRestaurarBackup').onclick=restaurarBackup;
+        document.getElementById('btnAlterarSenha').onclick=alterarSenha;
+        document.getElementById('adminChatInput')?.addEventListener('keypress',e=>{if(e.key==='Enter')enviarMensagemAdmin()});
+        window.addEventListener('click',e=>{if(e.target.classList.contains('modal'))e.target.style.display='none'});
+
+        window.editarTerapeuta=editarTerapeuta;window.toggleStatusTerapeuta=toggleStatusTerapeuta;window.excluirTerapeuta=excluirTerapeuta;window.aprovarSolicitacao=aprovarSolicitacao;window.recusarSolicitacao=recusarSolicitacao;window.abrirModalPlano=abrirModalPlano;window.salvarPlano=salvarPlano;window.togglePlano=togglePlano;window.fecharModal=fecharModal;
+
+        console.log('🛡️ SYNAPSE ADMIN v1.0 + Supabase · Pronto');
     </script>
 </body>
 </html>
