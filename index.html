@@ -127,6 +127,7 @@ const SB_URL='https://wedhebcoxljyeoxhgaob.supabase.co';
 const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndlZGhlYmNveGxqeWVveGhnYW9iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY4OTgwNDgsImV4cCI6MjA5MjQ3NDA0OH0._Xnqxp6YSazOK37xP5qSi5gOuThvqGm5Kw_xmWZU8XQ';
 const sb=supabase.createClient(SB_URL,SB_KEY);
 let terapeutas=[],solicitacoes=[],planos=[],chatAtivo=null,admin=null,polls=[];
+let chatRealtimeChannel = null; // NOVO: para o canal Realtime
 
 function playNotificationSound() {
     try {
@@ -155,7 +156,7 @@ async function login(){
 function iniciarPolling(){
     polls.push(setInterval(async()=>{await carregarS();atualizarDash();verificarNovasSolicitacoes()},5000));
     polls.push(setInterval(async()=>{await carregarT()},15000));
-    polls.push(setInterval(async()=>{if(chatAtivo)await renderChatAdmin()},3000));
+    // REMOVIDO: polling do chat (setInterval de 3000ms) agora usa Realtime!
     polls.push(setInterval(verificarNotificacoesAdmin,8000));
 }
 
@@ -175,7 +176,7 @@ async function carregarT(){const{data}=await sb.from('terapeutas').select('*').o
 function renderT(){
     const c=document.getElementById('tList');if(!c)return;
     if(!terapeutas.length){c.innerHTML='<p style="text-align:center;color:#6B6B7A;padding:40px">Nenhum terapeuta cadastrado</p>';return}
-    c.innerHTML=`<table class="data-table"><thead><tr><th>Nome</th><th>E-mail</th><th>Coins</th><th>Const.</th><th>Status</th><th>Plano</th><th>Ações</th></td></thead><tbody>${terapeutas.map(t=>{
+    c.innerHTML=`<table class="data-table"><thead><tr><th>Nome</th><th>E-mail</th><th>Coins</th><th>Const.</th><th>Status</th><th>Plano</th><th>Ações</th></tr></thead><tbody>${terapeutas.map(t=>{
         const p=planos.find(x=>x.id===t.plano_id);
         return `<tr>
             <td><strong>${t.nome}</strong></td>
@@ -225,13 +226,13 @@ async function aprovarS(id){
 }
 async function recusarS(id){const s=solicitacoes.find(s=>s.id==id);await sb.from('solicitacoes_recarga').update({status:'recusada'}).eq('id',id);await carregarS();showToast('❌ Solicitação recusada')}
 async function addCred(){const tid=document.getElementById('credT').value;const pd=document.getElementById('pkg').value.split('|');if(!tid||!pd[0]){showToast('❌ Selecione terapeuta e plano');return}const t=terapeutas.find(t=>t.id==tid);if(!t)return;const q=parseInt(pd[0]),v=parseFloat(pd[1]),planoId=pd[2];const novoSaldo = (t.saldo || 0) + q;await sb.from('terapeutas').update({saldo:novoSaldo,plano_id:planoId}).eq('id',tid);await sb.from('solicitacoes_recarga').insert([{terapeuta_id:tid,terapeuta_nome:t.nome,terapeuta_email:t.email,plano_id:planoId,plano_nome:`${q} Coins (Manual)`,qtd_coins:q,valor:v,tipo:'manual',status:'aprovada'}]);await carregarT();await carregarS();atualizarDash();showToast(`✅ Adicionado ${q} Coins para ${t.nome}`)}
-function renderHist(){const c=document.getElementById('recHist');if(!c)return;const a=solicitacoes.filter(s=>s.status==='aprovada').slice(0,20);if(!a.length){c.innerHTML='<p style="text-align:center;color:#6B6B7A">📭 Nenhuma recarga aprovada ainda</p>';return}c.innerHTML=`<table class="data-table"><thead><tr><th>Data</th><th>Terapeuta</th><th>Plano</th><th>Coins</th><th>Valor</th></tr></thead><tbody>${a.map(r=>`<td>
+function renderHist(){const c=document.getElementById('recHist');if(!c)return;const a=solicitacoes.filter(s=>s.status==='aprovada').slice(0,20);if(!a.length){c.innerHTML='<p style="text-align:center;color:#6B6B7A">📭 Nenhuma recarga aprovada ainda</p>';return}c.innerHTML=`<table class="data-table"><thead><tr><th>Data</th><th>Terapeuta</th><th>Plano</th><th>Coins</th><th>Valor</th></tr></thead><tbody>${a.map(r=>`<tr>
         <td><small>${new Date(r.data_solicitacao).toLocaleDateString('pt-BR')}</small></td>
         <td>${r.terapeuta_nome}</small></td>
         <td>${r.plano_nome}</small></td>
         <td>+${r.qtd_coins}</small></td>
         <td>R$ ${r.valor.toFixed(2)}</small></td>
-    </tr>`).join('')}</tbody></tr>`}
+    </tr>`).join('')}</tbody></table>`}
 
 async function carregarP(){const{data}=await sb.from('planos').select('*').order('preco');planos=data||[];renderP();popularSelects()}
 
@@ -289,12 +290,148 @@ function abrirPlano(id){document.getElementById('modalP').style.display='flex';i
 async function salvarP(){const id=document.getElementById('editPId').value;const d={nome:document.getElementById('pNome').value,tipo:document.getElementById('pTipo').value,preco:parseFloat(document.getElementById('pPreco').value)||0,coins:parseInt(document.getElementById('pCoins').value)||0,status:document.getElementById('pStatus').value};if(id)await sb.from('planos').update(d).eq('id',id);else await sb.from('planos').insert([d]);document.getElementById('modalP').style.display='none';await carregarP();showToast('✅ Plano salvo!')}
 async function toggleP(id){const p=planos.find(p=>p.id==id);if(!p)return;await sb.from('planos').update({status:p.status==='ativo'?'inativo':'ativo'}).eq('id',id);await carregarP()}
 
-function popularChatAdmin(){const s=document.getElementById('chatSel');if(!s)return;s.innerHTML='<option value="">📋 Selecione um terapeuta</option>'+terapeutas.filter(t=>t.email!=='admin@synapse.com').map(t=>`<option value="${t.id}">${t.nome} (💰 ${t.saldo||0} coins)</option>`).join('');s.onchange=async function(){chatAtivo=this.value;await renderChatAdmin();if(chatAtivo)await marcarLidasAdmin()}}
-async function renderChatAdmin(){const c=document.getElementById('chatMsgs');if(!c)return;if(!chatAtivo){c.innerHTML='<p style="text-align:center;color:#6B6B7A;padding:40px">👈 Selecione um terapeuta</p>';return}const{data}=await sb.from('mensagens').select('*').or(`terapeuta_id.eq.${chatAtivo},is_admin.eq.true`).order('data',{ascending:true});const msgs=data||[];if(!msgs.length){c.innerHTML='<p style="text-align:center;color:#6B6B7A;padding:40px">💬 Nenhuma mensagem</p>';return}const t=terapeutas.find(t=>t.id==chatAtivo);c.innerHTML=msgs.map(m=>`<div class="chat-message ${m.is_admin?'sent':'received'}"><strong>${m.is_admin?'Você (Admin)':(t?.nome||'Terapeuta')}</strong><br>${m.mensagem}<div class="msg-time">${new Date(m.data).toLocaleString('pt-BR')}</div></div>`).join('');c.scrollTop=c.scrollHeight}
-async function sendMsgAdmin(){const i=document.getElementById('chatInput');const m=i.value.trim();if(!m){showToast('Digite uma mensagem');return}if(!chatAtivo){showToast('Selecione um terapeuta primeiro');return}const t=terapeutas.find(t=>t.id==chatAtivo);if(!t)return;await sb.from('mensagens').insert([{terapeuta_id:chatAtivo,terapeuta_nome:t.nome,mensagem:m,is_admin:true,lida:true}]);i.value='';await renderChatAdmin()}
-async function marcarLidasAdmin(){if(!chatAtivo)return;await sb.from('mensagens').update({lida:true}).eq('terapeuta_id',chatAtivo).eq('is_admin',false).eq('lida',false);document.getElementById('chatNotif').style.display='none'}
-async function verificarNotificacoesAdmin(){if(!admin)return;const{data}=await sb.from('mensagens').select('terapeuta_nome').eq('is_admin',false).eq('lida',false);const count=data?new Set(data.map(m=>m.terapeuta_nome)).size:0;document.getElementById('chatNotif').style.display=count>0?'block':'none';document.getElementById('tileMensagens').textContent=count;if(count>0)document.getElementById('mensagensBadge').style.display='block';else document.getElementById('mensagensBadge').style.display='none'}
-async function limparChatAdmin(){if(!chatAtivo){showToast('Selecione um terapeuta primeiro');return}if(!confirm(`⚠️ Tem certeza que deseja apagar TODAS as mensagens com este terapeuta?`))return;await sb.from('mensagens').delete().eq('terapeuta_id',chatAtivo);await renderChatAdmin();showToast('🗑️ Chat limpo!')}
+// =====================================================
+// CHAT COM REALTIME (NOVO - MENSAGENS INSTANTÂNEAS)
+// =====================================================
+
+function popularChatAdmin(){
+    const s=document.getElementById('chatSel');
+    if(!s)return;
+    s.innerHTML='<option value="">📋 Selecione um terapeuta</option>'+terapeutas.filter(t=>t.email!=='admin@synapse.com').map(t=>`<option value="${t.id}">${t.nome} (💰 ${t.saldo||0} coins)</option>`).join('');
+    s.onchange=async function(){
+        // Limpar canal anterior se existir
+        if(chatRealtimeChannel){
+            await sb.removeChannel(chatRealtimeChannel);
+            chatRealtimeChannel = null;
+        }
+        chatAtivo=this.value;
+        await carregarHistoricoChatAdmin(chatAtivo);
+        if(chatAtivo){
+            await marcarLidasAdmin();
+            iniciarRealtimeChatAdmin(chatAtivo);
+        }
+    }
+}
+
+// Carregar histórico de mensagens (primeira carga)
+async function carregarHistoricoChatAdmin(terapeutaId){
+    const c=document.getElementById('chatMsgs');
+    if(!c) return;
+    if(!terapeutaId){
+        c.innerHTML='<p style="text-align:center;color:#6B6B7A;padding:40px">👈 Selecione um terapeuta</p>';
+        return;
+    }
+    const{data}=await sb.from('mensagens').select('*').or(`terapeuta_id.eq.${terapeutaId},is_admin.eq.true`).order('data',{ascending:true});
+    const msgs=data||[];
+    if(!msgs.length){
+        c.innerHTML='<p style="text-align:center;color:#6B6B7A;padding:40px">💬 Nenhuma mensagem ainda</p>';
+        return;
+    }
+    const t=terapeutas.find(t=>t.id==terapeutaId);
+    c.innerHTML=msgs.map(m=>`<div class="chat-message ${m.is_admin?'sent':'received'}"><strong>${m.is_admin?'Você (Admin)':(t?.nome||'Terapeuta')}</strong><br>${m.mensagem}<div class="msg-time">${new Date(m.data).toLocaleString('pt-BR')}</div></div>`).join('');
+    c.scrollTop=c.scrollHeight;
+}
+
+// REALTIME - Mensagens chegam INSTANTANEAMENTE
+function iniciarRealtimeChatAdmin(terapeutaId){
+    if(!terapeutaId) return;
+    
+    chatRealtimeChannel = sb
+        .channel(`admin-chat-${terapeutaId}`)
+        .on('postgres_changes', {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'mensagens',
+            filter: `terapeuta_id=eq.${terapeutaId}`
+        }, (payload) => {
+            const novaMensagem = payload.new;
+            // Adicionar apenas mensagens do terapeuta (não as do admin)
+            if(!novaMensagem.is_admin){
+                adicionarMensagemChatAdmin(novaMensagem);
+                playNotificationSound();
+                document.getElementById('chatNotif').style.display='block';
+            }
+        })
+        .subscribe();
+}
+
+// Adicionar mensagem na tela sem recarregar tudo
+function adicionarMensagemChatAdmin(mensagem){
+    const c=document.getElementById('chatMsgs');
+    if(!c) return;
+    const t=terapeutas.find(t=>t.id==mensagem.terapeuta_id);
+    const msgDiv = document.createElement('div');
+    msgDiv.className = 'chat-message received';
+    msgDiv.innerHTML = `<strong>${t?.nome||'Terapeuta'}</strong><br>${mensagem.mensagem}<div class="msg-time">${new Date(mensagem.data).toLocaleString('pt-BR')}</div>`;
+    c.appendChild(msgDiv);
+    c.scrollTop = c.scrollHeight;
+}
+
+// Função de renderização ANTIGA (substituída pelo Realtime, mas mantida como fallback)
+async function renderChatAdmin(){
+    if(chatAtivo){
+        await carregarHistoricoChatAdmin(chatAtivo);
+    }
+}
+
+async function sendMsgAdmin(){
+    const i=document.getElementById('chatInput');
+    const m=i.value.trim();
+    if(!m){showToast('Digite uma mensagem');return}
+    if(!chatAtivo){showToast('Selecione um terapeuta primeiro');return}
+    const t=terapeutas.find(t=>t.id==chatAtivo);
+    if(!t)return;
+    
+    // Enviar mensagem
+    await sb.from('mensagens').insert([{
+        terapeuta_id:chatAtivo,
+        terapeuta_nome:t.nome,
+        mensagem:m,
+        is_admin:true,
+        lida:true
+    }]);
+    
+    // Adicionar a mensagem do admin na tela instantaneamente
+    const c=document.getElementById('chatMsgs');
+    if(c){
+        const msgDiv = document.createElement('div');
+        msgDiv.className = 'chat-message sent';
+        msgDiv.innerHTML = `<strong>Você (Admin)</strong><br>${m}<div class="msg-time">${new Date().toLocaleString('pt-BR')}</div>`;
+        c.appendChild(msgDiv);
+        c.scrollTop = c.scrollHeight;
+    }
+    
+    i.value='';
+}
+
+async function marcarLidasAdmin(){
+    if(!chatAtivo)return;
+    await sb.from('mensagens').update({lida:true}).eq('terapeuta_id',chatAtivo).eq('is_admin',false).eq('lida',false);
+    document.getElementById('chatNotif').style.display='none';
+}
+
+async function verificarNotificacoesAdmin(){
+    if(!admin)return;
+    const{data}=await sb.from('mensagens').select('terapeuta_nome').eq('is_admin',false).eq('lida',false);
+    const count=data?new Set(data.map(m=>m.terapeuta_nome)).size:0;
+    document.getElementById('chatNotif').style.display=count>0?'block':'none';
+    document.getElementById('tileMensagens').textContent=count;
+    if(count>0)document.getElementById('mensagensBadge').style.display='block';
+    else document.getElementById('mensagensBadge').style.display='none';
+}
+
+async function limparChatAdmin(){
+    if(!chatAtivo){showToast('Selecione um terapeuta primeiro');return}
+    if(!confirm(`⚠️ Tem certeza que deseja apagar TODAS as mensagens com este terapeuta?`))return;
+    await sb.from('mensagens').delete().eq('terapeuta_id',chatAtivo);
+    if(chatRealtimeChannel){
+        await sb.removeChannel(chatRealtimeChannel);
+        chatRealtimeChannel = null;
+    }
+    await carregarHistoricoChatAdmin(chatAtivo);
+    iniciarRealtimeChatAdmin(chatAtivo);
+    showToast('🗑️ Chat limpo!');
+}
 
 function atualizarDash(){
     const ativos=terapeutas.filter(t=>t.status==='ativo' && t.email!=='admin@synapse.com').length;
@@ -342,12 +479,12 @@ document.getElementById('btnRest').onclick=restaurarBackup;
 document.getElementById('btnSenha').onclick=alterarSenha;
 document.getElementById('chatInput')?.addEventListener('keypress',e=>{if(e.key==='Enter')sendMsgAdmin()});
 window.addEventListener('click',e=>{if(e.target.classList.contains('modal'))e.target.style.display='none'});
-window.addEventListener('beforeunload',()=>{polls.forEach(p=>clearInterval(p))});
+window.addEventListener('beforeunload',()=>{polls.forEach(p=>clearInterval(p));if(chatRealtimeChannel){sb.removeChannel(chatRealtimeChannel)}});
 
 window.editarT=editarT;window.toggleT=toggleT;window.excluirT=excluirT;window.aprovarS=aprovarS;window.recusarS=recusarS;window.abrirPlano=abrirPlano;window.salvarP=salvarP;window.toggleP=toggleP;window.excluirPlano=excluirPlano;window.fecharM=fecharM;window.nav=nav;
 window.limparChatAdmin=limparChatAdmin;window.sendMsgAdmin=sendMsgAdmin;
 
-console.log('🛡️ SYNAPSE ADMIN v4.0 - Sistema operacional');
+console.log('🛡️ SYNAPSE ADMIN v4.0 - Chat em TEMPO REAL (Realtime) ativado!');
 </script>
 </body>
 </html>
