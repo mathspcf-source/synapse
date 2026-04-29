@@ -58,7 +58,7 @@
     <div class="login-card">
         <div class="logo-icon"><i class="fas fa-brain"></i></div>
         <h1>SYNAPSE</h1>
-        <div class="subtitle">Portal do Terapeuta · Constelação Sistêmica v4.0</div>
+        <div class="subtitle">Portal do Terapeuta · Constelação Sistêmica</div>
         <input type="email" id="loginEmail" placeholder="seu@email.com" value="maria@synapse.com">
         <input type="password" id="loginPassword" placeholder="Sua senha" value="123456">
         <div class="spinner" id="loginSpinner"></div>
@@ -136,7 +136,7 @@
             </div>
         </div>
         
-        <div id="panelPerfil" class="panel"><div class="card"><h3><i class="fas fa-user-cog"></i> Meus Dados</h3><div class="form-group"><label>Nome</label><input type="text" id="perfilNome" disabled></div><div class="form-group"><label>E-mail</label><input type="email" id="perfilEmail" disabled></div><div class="form-group"><label>Telefone</label><input type="text" id="perfilTelefone"></div><div class="form-group"><label>Nova Senha</label><input type="password" id="novaSenha" placeholder="Deixe em branco para manter"></div><div class="form-group"><label>Confirmar Senha</label><input type="password" id="confirmaSenha" placeholder="Confirme a nova senha"></div><button class="btn-primary" onclick="atualizarPerfil()"><i class="fas fa-save"></i> Atualizar Perfil</button></div><div class="card"><h3><i class="fas fa-info-circle"></i> Informações</h3><p><strong>Matheus Pacifico Evangelista</strong> © 2026 · v4.0<br><i class="fab fa-whatsapp"></i> (79) 99645-8399<br><i class="fas fa-envelope"></i> contato@synapse.com<br><i class="fas fa-shield-alt"></i> Sistema seguro com chat e recargas</p></div></div>
+        <div id="panelPerfil" class="panel"><div class="card"><h3><i class="fas fa-user-cog"></i> Meus Dados</h3><div class="form-group"><label>Nome</label><input type="text" id="perfilNome" disabled></div><div class="form-group"><label>E-mail</label><input type="email" id="perfilEmail" disabled></div><div class="form-group"><label>Telefone</label><input type="text" id="perfilTelefone"></div><div class="form-group"><label>Nova Senha</label><input type="password" id="novaSenha" placeholder="Deixe em branco para manter"></div><button class="btn-primary" onclick="atualizarPerfil()"><i class="fas fa-save"></i> Atualizar Perfil</button></div><div class="card"><h3><i class="fas fa-info-circle"></i> Informações</h3><p><strong>Matheus Pacifico Evangelista</strong> © 2026 · v3.2<br><i class="fab fa-whatsapp"></i> (79) 99645-8399<br><i class="fas fa-envelope"></i> contato@synapse.com</p></div></div>
     </div>
 </div>
 
@@ -152,6 +152,7 @@ const sb=supabase.createClient(SB_URL,SB_KEY);
 let usuario=null,clientes=[],agendamentos=[],prontuarios=[],planos=[],mensagens=[];
 let sessaoTimerInterval = null;
 
+// ⏰ CONFIGURAÇÃO DO TIMEOUT (2 HORAS)
 const TIMEOUT_HORAS = 2;
 const TIMEOUT_MS = TIMEOUT_HORAS * 60 * 60 * 1000;
 
@@ -293,6 +294,7 @@ function verProntuario(nome){const pts=prontuarios.filter(p=>p.cliente_nome===no
 
 async function carregarPlanos(){const{data}=await sb.from('planos').select('*').eq('status','ativo').order('preco');planos=data||[];const grid=document.getElementById('planosGrid');if(grid)grid.innerHTML=planos.map(p=>`<div class="pacote-card" onclick="solicitarPlano('${p.id}')"><div class="pacote-qtd">💰 ${p.coins}</div><div>Synapse Coins</div><div class="pacote-preco">R$ ${p.preco.toFixed(2)}${p.tipo==='mensal'?'/mês':''}</div><div style="font-size:0.6rem;color:#6B6B7A;margin-top:5px">📱 Clique para comprar</div>${p.tipo==='mensal'&&p.coins>=50?'<div class="pacote-badge">Popular</div>':''}</div>`).join('');const pa=planos.find(p=>p.id===usuario?.plano_id);document.getElementById('planoAtualNome').textContent=pa?pa.nome:'Sem plano ativo'}
 
+// ✅ FUNÇÃO CORRIGIDA DE SOLICITAÇÃO DE PLANO
 async function solicitarPlano(planoId){
     const p = planos.find(p => p.id == planoId);
     if(!p){showToast('❌ Plano não encontrado');return;}
@@ -319,6 +321,7 @@ async function solicitarPlano(planoId){
     } catch (err) {console.error(err);showToast('❌ Erro ao processar solicitação');}
 }
 
+// ✅ FUNÇÃO PARA LIMPAR O CHAT DO CLIENTE
 async function limparChatCliente(){
     if(!usuario){showToast('❌ Faça login primeiro');return;}
     if(!confirm('⚠️ Tem certeza que deseja apagar TODAS as mensagens do chat?')) return;
@@ -333,7 +336,7 @@ async function carregarM(){if(!usuario)return;const{data}=await sb.from('mensage
 function renderChat(){const c=document.getElementById('chatMessages');if(!c)return;if(!mensagens.length){c.innerHTML='<p style="text-align:center;color:#6B6B7A;padding:40px">💬 Nenhuma mensagem. Envie uma mensagem para o suporte!</p>';return}c.innerHTML=mensagens.map(m=>`<div class="chat-message ${m.is_admin?'received':'sent'}"><strong>${m.is_admin?'📢 Suporte':'Você'}</strong><br>${m.mensagem}<div class="msg-time">${new Date(m.data).toLocaleString('pt-BR')}</div></div>`).join('');c.scrollTop=c.scrollHeight}
 async function enviarMsg(){const i=document.getElementById('chatInput');const m=i.value.trim();if(!m){showToast('Digite uma mensagem');return}if(!usuario)return;await sb.from('mensagens').insert([{terapeuta_id:usuario.id,terapeuta_nome:usuario.nome,mensagem:m,is_admin:false,lida:false}]);i.value='';await carregarM();showToast('✅ Mensagem enviada!')}
 document.getElementById('chatInput')?.addEventListener('keypress',e=>{if(e.key==='Enter')enviarMsg()});
-async function atualizarPerfil(){const tel=document.getElementById('perfilTelefone').value;const senha=document.getElementById('novaSenha').value;const confirma=document.getElementById('confirmaSenha').value;if(senha && senha !== confirma){showToast('❌ Senhas não conferem');return}if(senha && senha.length < 6){showToast('❌ Senha deve ter no mínimo 6 caracteres');return}const d={telefone:tel};if(senha){d.senha=senha;showToast('✅ Senha alterada!');document.getElementById('novaSenha').value='';document.getElementById('confirmaSenha').value='';}await sb.from('terapeutas').update(d).eq('id',usuario.id);showToast('✅ Perfil atualizado!')}
+async function atualizarPerfil(){const tel=document.getElementById('perfilTelefone').value;const senha=document.getElementById('novaSenha').value;const d={telefone:tel};if(senha&&senha.length>=6)d.senha=senha;await sb.from('terapeutas').update(d).eq('id',usuario.id);if(senha){document.getElementById('novaSenha').value='';showToast('✅ Senha alterada!')}else{showToast('✅ Perfil atualizado!')}}
 function fecharM(id){document.getElementById(id).classList.remove('show')}
 function showToast(msg){const t=document.createElement('div');t.className='toast';t.textContent=msg;document.body.appendChild(t);setTimeout(()=>t.remove(),2000)}
 window.addEventListener('click',e=>{if(e.target.classList.contains('modal-overlay'))e.target.classList.remove('show')});
@@ -385,6 +388,7 @@ async function abrirSala3D(){
     const estadoSalvo = localStorage.getItem('salaEstado_'+usuario.id);
     const w = window.open('', 'sala3D', 'width='+screen.width+',height='+screen.height);
     
+    // O RESTO DA SALA 3D É IGUAL AO SEU ORIGINAL, MANTIVE PARA NÃO QUEBRAR
     w.document.write(`<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>SYNAPSE | Sala 3D</title><link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet"><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"><script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"><\/script><script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"><\/script><script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/renderers/CSS2DRenderer.js"><\/script><style>
 *{margin:0;padding:0;box-sizing:border-box;user-select:none}body{font-family:'Inter',sans-serif;background:#0a0a14;overflow:hidden;height:100vh;width:100vw}
 canvas{position:fixed;top:0;left:0;width:100vw;height:100vh;display:block;cursor:grab;z-index:1}canvas:active{cursor:grabbing}
@@ -490,20 +494,6 @@ window.enviarMsg = enviarMsg;
 window.solicitarPlano = solicitarPlano;
 window.verificarSessaoAtiva = verificarSessaoAtiva;
 window.abrirSala3D = abrirSala3D;
-window.nav = nav;
-window.fecharM = fecharM;
-window.abrirModalCliente = abrirModalCliente;
-window.editarCliente = editarCliente;
-window.removerCliente = removerCliente;
-window.salvarCliente = salvarCliente;
-window.verProntuario = verProntuario;
-window.salvarProntuario = salvarProntuario;
-window.abrirModalProntuario = abrirModalProntuario;
-window.confirmarAgendamento = confirmarAgendamento;
-window.remarcarAgendamento = remarcarAgendamento;
-window.cancelarAgendamento = cancelarAgendamento;
-window.salvarAgendamento = salvarAgendamento;
-window.atualizarPerfil = atualizarPerfil;
 </script>
 </body>
 </html>
