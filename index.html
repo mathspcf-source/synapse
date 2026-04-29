@@ -175,7 +175,7 @@ async function carregarT(){const{data}=await sb.from('terapeutas').select('*').o
 function renderT(){
     const c=document.getElementById('tList');if(!c)return;
     if(!terapeutas.length){c.innerHTML='<p style="text-align:center;color:#6B6B7A;padding:40px">Nenhum terapeuta cadastrado</p>';return}
-    c.innerHTML=`<table class="data-table"><thead><tr><th>Nome</th><th>E-mail</th><th>Coins</th><th>Const.</th><th>Status</th><th>Plano</th><th>Ações</th></tr></thead><tbody>${terapeutas.map(t=>{
+    c.innerHTML=`<table class="data-table"><thead><tr><th>Nome</th><th>E-mail</th><th>Coins</th><th>Const.</th><th>Status</th><th>Plano</th><th>Ações</th></td></thead><tbody>${terapeutas.map(t=>{
         const p=planos.find(x=>x.id===t.plano_id);
         return `<tr>
             <td><strong>${t.nome}</strong></td>
@@ -225,16 +225,66 @@ async function aprovarS(id){
 }
 async function recusarS(id){const s=solicitacoes.find(s=>s.id==id);await sb.from('solicitacoes_recarga').update({status:'recusada'}).eq('id',id);await carregarS();showToast('❌ Solicitação recusada')}
 async function addCred(){const tid=document.getElementById('credT').value;const pd=document.getElementById('pkg').value.split('|');if(!tid||!pd[0]){showToast('❌ Selecione terapeuta e plano');return}const t=terapeutas.find(t=>t.id==tid);if(!t)return;const q=parseInt(pd[0]),v=parseFloat(pd[1]),planoId=pd[2];const novoSaldo = (t.saldo || 0) + q;await sb.from('terapeutas').update({saldo:novoSaldo,plano_id:planoId}).eq('id',tid);await sb.from('solicitacoes_recarga').insert([{terapeuta_id:tid,terapeuta_nome:t.nome,terapeuta_email:t.email,plano_id:planoId,plano_nome:`${q} Coins (Manual)`,qtd_coins:q,valor:v,tipo:'manual',status:'aprovada'}]);await carregarT();await carregarS();atualizarDash();showToast(`✅ Adicionado ${q} Coins para ${t.nome}`)}
-function renderHist(){const c=document.getElementById('recHist');if(!c)return;const a=solicitacoes.filter(s=>s.status==='aprovada').slice(0,20);if(!a.length){c.innerHTML='<p style="text-align:center;color:#6B6B7A">📭 Nenhuma recarga aprovada ainda</p>';return}c.innerHTML=`<table class="data-table"><thead><tr><th>Data</th><th>Terapeuta</th><th>Plano</th><th>Coins</th><th>Valor</th></tr></thead><tbody>${a.map(r=>`<tr>
+function renderHist(){const c=document.getElementById('recHist');if(!c)return;const a=solicitacoes.filter(s=>s.status==='aprovada').slice(0,20);if(!a.length){c.innerHTML='<p style="text-align:center;color:#6B6B7A">📭 Nenhuma recarga aprovada ainda</p>';return}c.innerHTML=`<table class="data-table"><thead><tr><th>Data</th><th>Terapeuta</th><th>Plano</th><th>Coins</th><th>Valor</th></tr></thead><tbody>${a.map(r=>`<td>
         <td><small>${new Date(r.data_solicitacao).toLocaleDateString('pt-BR')}</small></td>
         <td>${r.terapeuta_nome}</small></td>
         <td>${r.plano_nome}</small></td>
         <td>+${r.qtd_coins}</small></td>
         <td>R$ ${r.valor.toFixed(2)}</small></td>
-    </tr>`).join('')}</tbody><td>`}
+    </tr>`).join('')}</tbody></tr>`}
 
 async function carregarP(){const{data}=await sb.from('planos').select('*').order('preco');planos=data||[];renderP();popularSelects()}
-function renderP(){const c=document.getElementById('planosList');if(!c)return;if(!planos.length){c.innerHTML='<p style="text-align:center;color:#6B6B7A">Nenhum plano cadastrado</p>';return}c.innerHTML=planos.map(p=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:12px;background:#FFF;border-radius:12px;margin-bottom:8px;border:1px solid #E8E4F0"><div><strong>${p.nome}</strong> <span style="font-size:0.6rem;background:#E3F2FD;color:#5B8DEF;padding:2px 8px;border-radius:10px">${p.tipo}</span><br><span style="font-size:0.65rem">💰 ${p.coins} Synapse Coins</span></div><div style="text-align:right"><strong style="color:#6B4E9E">R$ ${p.preco.toFixed(2)}</strong><br><button class="btn-icon" onclick="abrirPlano('${p.id}')"><i class="fas fa-edit"></i></button><button class="btn-icon" onclick="toggleP('${p.id}')"><i class="fas ${p.status==='ativo'?'fa-power-off':'fa-play'}"></i></button></div></div>`).join('')}
+
+// FUNÇÃO RENDER P COM BOTÃO EXCLUIR
+function renderP(){
+    const c = document.getElementById('planosList');
+    if(!c) return;
+    if(!planos.length){
+        c.innerHTML = '<p style="text-align:center;color:#6B6B7A">Nenhum plano cadastrado</p>';
+        return;
+    }
+    c.innerHTML = planos.map(p => `
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:12px;background:#FFF;border-radius:12px;margin-bottom:8px;border:1px solid #E8E4F0">
+            <div>
+                <strong>${p.nome}</strong> 
+                <span style="font-size:0.6rem;background:#E3F2FD;color:#5B8DEF;padding:2px 8px;border-radius:10px">${p.tipo}</span>
+                <br>
+                <span style="font-size:0.65rem">💰 ${p.coins} Synapse Coins | R$ ${p.preco.toFixed(2)}</span>
+            </div>
+            <div>
+                <button class="btn-icon" onclick="abrirPlano('${p.id}')" title="Editar">
+                    <i class="fas fa-edit"></i>
+                </button>
+                <button class="btn-icon" onclick="toggleP('${p.id}')" title="${p.status === 'ativo' ? 'Desativar' : 'Ativar'}">
+                    <i class="fas ${p.status === 'ativo' ? 'fa-power-off' : 'fa-play'}"></i>
+                </button>
+                <button class="btn-icon danger" onclick="excluirPlano('${p.id}')" title="Excluir Plano" style="color:#E57373">
+                    <i class="fas fa-trash-alt"></i>
+                </button>
+            </div>
+        </div>
+    `).join('');
+}
+
+// FUNÇÃO PARA EXCLUIR PLANO
+async function excluirPlano(id){
+    const plano = planos.find(p => p.id == id);
+    if(!plano) return;
+    
+    if(!confirm(`⚠️ Tem certeza que deseja EXCLUIR o plano "${plano.nome}"?\n\nEsta ação é irreversível e não pode ser desfeita!`)){
+        return;
+    }
+    
+    try {
+        await sb.from('planos').delete().eq('id', id);
+        showToast(`🗑️ Plano "${plano.nome}" excluído com sucesso!`);
+        await carregarP();
+    } catch (error) {
+        console.error(error);
+        showToast('❌ Erro ao excluir plano. Verifique se ele não está vinculado a alguma solicitação.');
+    }
+}
+
 function abrirPlano(id){document.getElementById('modalP').style.display='flex';if(id){const p=planos.find(p=>p.id==id);if(!p)return;document.getElementById('modalPTitle').innerHTML='<i class="fas fa-edit"></i> Editar Plano';document.getElementById('editPId').value=p.id;document.getElementById('pNome').value=p.nome;document.getElementById('pTipo').value=p.tipo;document.getElementById('pPreco').value=p.preco;document.getElementById('pCoins').value=p.coins;document.getElementById('pStatus').value=p.status}else{document.getElementById('modalPTitle').innerHTML='<i class="fas fa-plus"></i> Novo Plano';document.getElementById('editPId').value='';document.getElementById('pNome').value='';document.getElementById('pTipo').value='avulso';document.getElementById('pPreco').value='';document.getElementById('pCoins').value='';document.getElementById('pStatus').value='ativo'}}
 async function salvarP(){const id=document.getElementById('editPId').value;const d={nome:document.getElementById('pNome').value,tipo:document.getElementById('pTipo').value,preco:parseFloat(document.getElementById('pPreco').value)||0,coins:parseInt(document.getElementById('pCoins').value)||0,status:document.getElementById('pStatus').value};if(id)await sb.from('planos').update(d).eq('id',id);else await sb.from('planos').insert([d]);document.getElementById('modalP').style.display='none';await carregarP();showToast('✅ Plano salvo!')}
 async function toggleP(id){const p=planos.find(p=>p.id==id);if(!p)return;await sb.from('planos').update({status:p.status==='ativo'?'inativo':'ativo'}).eq('id',id);await carregarP()}
@@ -294,7 +344,7 @@ document.getElementById('chatInput')?.addEventListener('keypress',e=>{if(e.key==
 window.addEventListener('click',e=>{if(e.target.classList.contains('modal'))e.target.style.display='none'});
 window.addEventListener('beforeunload',()=>{polls.forEach(p=>clearInterval(p))});
 
-window.editarT=editarT;window.toggleT=toggleT;window.excluirT=excluirT;window.aprovarS=aprovarS;window.recusarS=recusarS;window.abrirPlano=abrirPlano;window.salvarP=salvarP;window.toggleP=toggleP;window.fecharM=fecharM;window.nav=nav;
+window.editarT=editarT;window.toggleT=toggleT;window.excluirT=excluirT;window.aprovarS=aprovarS;window.recusarS=recusarS;window.abrirPlano=abrirPlano;window.salvarP=salvarP;window.toggleP=toggleP;window.excluirPlano=excluirPlano;window.fecharM=fecharM;window.nav=nav;
 window.limparChatAdmin=limparChatAdmin;window.sendMsgAdmin=sendMsgAdmin;
 
 console.log('🛡️ SYNAPSE ADMIN v4.0 - Sistema operacional');
