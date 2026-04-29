@@ -151,6 +151,7 @@ const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZ
 const sb=supabase.createClient(SB_URL,SB_KEY);
 let usuario=null,clientes=[],agendamentos=[],prontuarios=[],planos=[],mensagens=[];
 let sessaoTimerInterval = null;
+let chatRealtimeChannel = null; // NOVO: canal Realtime do chat
 
 // ⏰ CONFIGURAÇÃO DO TIMEOUT (2 HORAS)
 const TIMEOUT_HORAS = 2;
@@ -167,6 +168,11 @@ document.getElementById('btnLogout').onclick=()=>{
         localStorage.removeItem('sessaoFinalizada_'+uid);
     }
     if(sessaoTimerInterval) clearInterval(sessaoTimerInterval);
+    // Fechar canal Realtime ao sair
+    if(chatRealtimeChannel){
+        sb.removeChannel(chatRealtimeChannel);
+        chatRealtimeChannel = null;
+    }
     usuario=null;
     document.getElementById('dashboard').style.display='none';
     document.getElementById('loginContainer').style.display='flex';
@@ -202,6 +208,8 @@ async function login(){
     setInterval(verificarNotificacoes,8000);
     verificarSessaoAtiva();
     iniciarTimerSessao();
+    // Iniciar Realtime chat após login
+    iniciarRealtimeChatCliente();
     showToast('✅ Bem-vindo(a) ao SYNAPSE!');
 }
 
@@ -260,8 +268,8 @@ function verificarSessaoAtiva(){
 }
 
 async function verificarNotificacoes(){if(!usuario)return;const{data}=await sb.from('mensagens').select('*').eq('is_admin',true).eq('lida',false);document.getElementById('chatNotif').style.display=data&&data.length>0?'block':'none'}
-async function marcarLidas(){if(!usuario)return;await sb.from('mensagens').update({lida:true}).eq('terapeuta_id',usuario.id).eq('is_admin',true).eq('lida',false);document.getElementById('chatNotif').style.display='none';await carregarM()}
-async function carregarTudo(){await Promise.all([carregarClientes(),carregarAgendamentos(),carregarProntuarios(),carregarPlanos(),carregarM()]);atualizarStats();atualizarProgresso();atualizarHora()}
+async function marcarLidas(){if(!usuario)return;await sb.from('mensagens').update({lida:true}).eq('terapeuta_id',usuario.id).eq('is_admin',true).eq('lida',false);document.getElementById('chatNotif').style.display='none';await carregarHistoricoChatCliente()}
+async function carregarTudo(){await Promise.all([carregarClientes(),carregarAgendamentos(),carregarProntuarios(),carregarPlanos(),carregarHistoricoChatCliente()]);atualizarStats();atualizarProgresso();atualizarHora()}
 function atualizarProgresso(){if(!usuario)return;const total = (usuario.constelacoes_realizadas||0) + (usuario.saldo||0);const percent = total > 0 ? ((usuario.constelacoes_realizadas||0)/total*100).toFixed(0) : 0;document.getElementById('usoPercent').textContent=percent+'%';const pf=document.querySelector('.progress-fill');if(pf)pf.style.width=percent+'%'}
 function atualizarStats(){document.getElementById('statClientesCount').textContent=clientes.length;document.getElementById('statAgendamentosCount').textContent=agendamentos.filter(a=>a.status!=='cancelado').length;document.getElementById('statProntuariosCount').textContent=prontuarios.length;atualizarSaldos();document.getElementById('statConstelacoes').textContent=usuario?.constelacoes_realizadas||0;atualizarProgresso()}
 function atualizarHora(){const a=new Date();document.getElementById('pageDesc').innerHTML=`<i class="far fa-calendar-alt"></i> ${a.toLocaleDateString('pt-BR',{weekday:'long',year:'numeric',month:'long',day:'numeric'})} · <i class="far fa-clock"></i> ${a.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}`}
@@ -326,15 +334,110 @@ async function limparChatCliente(){
     if(!usuario){showToast('❌ Faça login primeiro');return;}
     if(!confirm('⚠️ Tem certeza que deseja apagar TODAS as mensagens do chat?')) return;
     try {
+        if(chatRealtimeChannel){
+            await sb.removeChannel(chatRealtimeChannel);
+            chatRealtimeChannel = null;
+        }
         await sb.from('mensagens').delete().eq('terapeuta_id', usuario.id);
-        await carregarM();
+        await carregarHistoricoChatCliente();
+        iniciarRealtimeChatCliente();
         showToast('🗑️ Chat limpo com sucesso!');
     } catch (err) {showToast('❌ Erro ao limpar o chat');}
 }
 
-async function carregarM(){if(!usuario)return;const{data}=await sb.from('mensagens').select('*').or(`terapeuta_id.eq.${usuario.id},is_admin.eq.true`).order('data',{ascending:true}).limit(50);mensagens=data||[];renderChat()}
-function renderChat(){const c=document.getElementById('chatMessages');if(!c)return;if(!mensagens.length){c.innerHTML='<p style="text-align:center;color:#6B6B7A;padding:40px">💬 Nenhuma mensagem. Envie uma mensagem para o suporte!</p>';return}c.innerHTML=mensagens.map(m=>`<div class="chat-message ${m.is_admin?'received':'sent'}"><strong>${m.is_admin?'📢 Suporte':'Você'}</strong><br>${m.mensagem}<div class="msg-time">${new Date(m.data).toLocaleString('pt-BR')}</div></div>`).join('');c.scrollTop=c.scrollHeight}
-async function enviarMsg(){const i=document.getElementById('chatInput');const m=i.value.trim();if(!m){showToast('Digite uma mensagem');return}if(!usuario)return;await sb.from('mensagens').insert([{terapeuta_id:usuario.id,terapeuta_nome:usuario.nome,mensagem:m,is_admin:false,lida:false}]);i.value='';await carregarM();showToast('✅ Mensagem enviada!')}
+// =====================================================
+// CHAT COM REALTIME - MENSAGENS INSTANTÂNEAS
+// =====================================================
+
+// Carregar histórico de mensagens
+async function carregarHistoricoChatCliente(){
+    if(!usuario) return;
+    const c = document.getElementById('chatMessages');
+    if(!c) return;
+    const {data} = await sb.from('mensagens').select('*').or(`terapeuta_id.eq.${usuario.id},is_admin.eq.true`).order('data',{ascending:true}).limit(50);
+    mensagens = data || [];
+    if(!mensagens.length){
+        c.innerHTML = '<p style="text-align:center;color:#6B6B7A;padding:40px">💬 Nenhuma mensagem. Envie uma mensagem para o suporte!</p>';
+        return;
+    }
+    c.innerHTML = mensagens.map(m => `<div class="chat-message ${m.is_admin ? 'received' : 'sent'}"><strong>${m.is_admin ? '📢 Suporte' : 'Você'}</strong><br>${m.mensagem}<div class="msg-time">${new Date(m.data).toLocaleString('pt-BR')}</div></div>`).join('');
+    c.scrollTop = c.scrollHeight;
+}
+
+// Iniciar Realtime - chega instantaneamente
+function iniciarRealtimeChatCliente(){
+    if(!usuario) return;
+    if(chatRealtimeChannel){
+        sb.removeChannel(chatRealtimeChannel);
+    }
+    
+    chatRealtimeChannel = sb
+        .channel(`cliente-chat-${usuario.id}`)
+        .on('postgres_changes', {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'mensagens',
+            filter: `terapeuta_id=eq.${usuario.id}`
+        }, (payload) => {
+            const novaMensagem = payload.new;
+            // Só adiciona se for do admin (is_admin = true)
+            if(novaMensagem.is_admin){
+                adicionarMensagemChatCliente(novaMensagem);
+                // Tocar som de notificação
+                try {
+                    const audio = new Audio('https://www.soundjay.com/misc/sounds/bell-ringing-05.mp3');
+                    audio.volume = 0.3;
+                    audio.play().catch(e => console.log('Áudio não suportado'));
+                } catch(e) {}
+                document.getElementById('chatNotif').style.display = 'block';
+            }
+        })
+        .subscribe();
+}
+
+// Adicionar mensagem na tela sem recarregar tudo
+function adicionarMensagemChatCliente(mensagem){
+    const c = document.getElementById('chatMessages');
+    if(!c) return;
+    // Remove mensagem de "nenhuma mensagem" se existir
+    if(c.innerHTML.includes('Nenhuma mensagem')){
+        c.innerHTML = '';
+    }
+    const msgDiv = document.createElement('div');
+    msgDiv.className = 'chat-message received';
+    msgDiv.innerHTML = `<strong>📢 Suporte</strong><br>${mensagem.mensagem}<div class="msg-time">${new Date(mensagem.data).toLocaleString('pt-BR')}</div>`;
+    c.appendChild(msgDiv);
+    c.scrollTop = c.scrollHeight;
+}
+
+// Função para enviar mensagem (mantida original)
+async function enviarMsg(){
+    const i = document.getElementById('chatInput');
+    const m = i.value.trim();
+    if(!m){showToast('Digite uma mensagem');return;}
+    if(!usuario)return;
+    
+    // Adicionar mensagem enviada instantaneamente na tela
+    const c = document.getElementById('chatMessages');
+    if(c && !c.innerHTML.includes('Nenhuma mensagem')){
+        const msgDiv = document.createElement('div');
+        msgDiv.className = 'chat-message sent';
+        msgDiv.innerHTML = `<strong>Você</strong><br>${m}<div class="msg-time">${new Date().toLocaleString('pt-BR')}</div>`;
+        c.appendChild(msgDiv);
+        c.scrollTop = c.scrollHeight;
+    }
+    
+    await sb.from('mensagens').insert([{
+        terapeuta_id: usuario.id,
+        terapeuta_nome: usuario.nome,
+        mensagem: m,
+        is_admin: false,
+        lida: false
+    }]);
+    i.value = '';
+    await carregarHistoricoChatCliente();
+}
+
 document.getElementById('chatInput')?.addEventListener('keypress',e=>{if(e.key==='Enter')enviarMsg()});
 async function atualizarPerfil(){const tel=document.getElementById('perfilTelefone').value;const senha=document.getElementById('novaSenha').value;const d={telefone:tel};if(senha&&senha.length>=6)d.senha=senha;await sb.from('terapeutas').update(d).eq('id',usuario.id);if(senha){document.getElementById('novaSenha').value='';showToast('✅ Senha alterada!')}else{showToast('✅ Perfil atualizado!')}}
 function fecharM(id){document.getElementById(id).classList.remove('show')}
@@ -388,7 +491,6 @@ async function abrirSala3D(){
     const estadoSalvo = localStorage.getItem('salaEstado_'+usuario.id);
     const w = window.open('', 'sala3D', 'width='+screen.width+',height='+screen.height);
     
-    // O RESTO DA SALA 3D É IGUAL AO SEU ORIGINAL, MANTIVE PARA NÃO QUEBRAR
     w.document.write(`<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>SYNAPSE | Sala 3D</title><link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet"><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"><script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"><\/script><script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"><\/script><script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/renderers/CSS2DRenderer.js"><\/script><style>
 *{margin:0;padding:0;box-sizing:border-box;user-select:none}body{font-family:'Inter',sans-serif;background:#0a0a14;overflow:hidden;height:100vh;width:100vw}
 canvas{position:fixed;top:0;left:0;width:100vw;height:100vh;display:block;cursor:grab;z-index:1}canvas:active{cursor:grabbing}
@@ -416,7 +518,7 @@ canvas{position:fixed;top:0;left:0;width:100vw;height:100vh;display:block;cursor
 <div class="gr"><div class="grg"><span class="grl">Conexão</span><span class="ge" onclick="qConn('amor')">❤️<span class="etip">Amor</span></span><span class="ge" onclick="qConn('paz')">🕊️<span class="etip">Paz</span></span><span class="ge" onclick="qConn('conflito')">⚡<span class="etip">Conflito</span></span><span class="ge" onclick="qConn('apoio')">🤝<span class="etip">Apoio</span></span><span class="ge" onclick="qConn('ruptura')">💔<span class="etip">Ruptura</span></span><span class="ge" onclick="qConn('morte')">💀<span class="etip">Luto</span></span></div><div class="grg"><span class="grl">Emoção</span><span class="ge" onclick="aEmo('😢')">😢<span class="etip">Tristeza</span></span><span class="ge" onclick="aEmo('🌟')">🌟<span class="etip">Cura</span></span><span class="ge" onclick="aEmo('🔥')">🔥<span class="etip">Raiva</span></span><span class="ge" onclick="aEmo('🙏')">🙏<span class="etip">Gratidão</span></span></div></div>
 <div class="gb"><span class="gbc sel" data-g="masc">👨 M</span><span class="gbc" data-g="fem">👩 F</span><span class="gbc" data-g="neutro">🌀 N</span><span class="gbs"></span><span class="gbc gold" onclick="add('Eu','eu')">⭐ Eu</span><span class="gbc" onclick="add('Pai','pai')">Pai</span><span class="gbc" onclick="add('Mãe','mae')">Mãe</span><span class="gbc" onclick="add('Filho(a)','filho')">Filho(a)</span><span class="gbc" onclick="add('Irmão(ã)','irmao')">Irmão(ã)</span><span class="gbc" onclick="add('Avô(ó)','avo')">Avô(ó)</span><span class="gbc" onclick="add('Marido','marido')">Marido</span><span class="gbc" onclick="add('Esposa','esposa')">Esposa</span><span class="gbs"></span><span class="gbc purple" onclick="aPert('morto')">💀 Falecido</span><span class="gbc purple" onclick="aPert('excluido')">🚫 Excluído</span><span class="gbc blue" onclick="openMod()">+ Outro</span></div>
 <div class="mod" id="mod"><div class="modbox"><h3>Nova Pessoa</h3><input type="text" id="modName" placeholder="Nome"><select id="modPert"><option value="familia_origem">🏠 Família de Origem</option><option value="ancestrais">👴 Ancestrais</option><option value="familia_ampliada">👥 Família Ampliada</option><option value="afetivo">💕 Afetivo</option><option value="social" selected>🤝 Social</option><option value="morte">💀 Morte</option><option value="excluidos">🚫 Excluídos</option><option value="outro">❓ Outro</option></select><div class="modbtns"><button class="btnp" onclick="cMod()">Adicionar</button><button class="btnc" onclick="clMod()">Cancelar</button></div></div></div>
-<div class="fin" id="finOverlay"><i class="fas fa-check-circle"></i><h2>Constelação Finalizada!</h2><p id="finMsg"></p><button class="btn-voltar" onclick="window.close()"><i class="fas fa-arrow-left"></i> Voltar ao Painel</button></div>
+<div class="fin" id="finOverlay"><i class="fas fa-check-circle"></i><h2>Constelação Finalizada!</h2><p id="finMsg"></p><button class="btn-voltar" onclick="finalizarConstelacao()"><i class="fas fa-arrow-left"></i> Voltar ao Painel</button></div>
 <script>
 const cv=document.getElementById('c3d');const r=new THREE.WebGLRenderer({canvas:cv,antialias:true,preserveDrawingBuffer:true});const s=new THREE.Scene();s.background=new THREE.Color(0x0e0e1a);const cam=new THREE.PerspectiveCamera(42,innerWidth/innerHeight,0.1,1000);cam.position.set(5.5,5.0,6.5);cam.lookAt(0,0.4,0);const lr=new THREE.CSS2DRenderer();lr.setSize(innerWidth,innerHeight);lr.domElement.style.cssText='position:fixed;top:0;left:0;pointer-events:none;z-index:50;';document.body.appendChild(lr.domElement);addEventListener('resize',()=>{cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix();r.setSize(innerWidth,innerHeight);lr.setSize(innerWidth,innerHeight)});r.setSize(innerWidth,innerHeight);const ctrl=new THREE.OrbitControls(cam,r.domElement);ctrl.enableDamping=true;ctrl.enablePan=false;ctrl.target.set(0,0.6,0);let cL=false,md='move';const FR=3.2,SCALE=0.75;
 const gnd=new THREE.Mesh(new THREE.CircleGeometry(FR+0.3,32),new THREE.MeshStandardMaterial({color:0x2a3a2a,roughness:0.5}));gnd.rotation.x=-Math.PI/2;gnd.position.y=-0.25;s.add(gnd);
@@ -494,6 +596,7 @@ window.enviarMsg = enviarMsg;
 window.solicitarPlano = solicitarPlano;
 window.verificarSessaoAtiva = verificarSessaoAtiva;
 window.abrirSala3D = abrirSala3D;
+window.carregarHistoricoChatCliente = carregarHistoricoChatCliente;
 </script>
 </body>
 </html>
