@@ -52,7 +52,7 @@
         <h1>SYNAPSE ADMIN</h1>
         <div class="subtitle">Painel do Administrador · v4.0</div>
         <input type="email" id="loginEmail" placeholder="E-mail" value="admin@synapse.com">
-        <input type="password" id="loginPassword" placeholder="Senha" value="S1EB5@11886">
+        <input type="password" id="loginPassword" placeholder="Senha" value="admin123">
         <div class="spinner" id="loginSpinner"></div>
         <button id="btnLogin"><i class="fas fa-sign-in-alt"></i> Entrar</button>
         <div id="loginError" class="error-msg"></div>
@@ -211,60 +211,27 @@ function renderS(){
         <td><button class="btn-success" onclick="aprovarS('${s.id}')"><i class="fas fa-check"></i> Aprovar</button> <button class="btn-danger" onclick="recusarS('${s.id}')" style="margin-left:5px"><i class="fas fa-times"></i> Recusar</button></td>
     </tr>`).join('')}</tbody></table>`}
 
-// ✅ FUNÇÃO CORRIGIDA DE APROVAÇÃO
 async function aprovarS(id){
     const s = solicitacoes.find(s => s.id == id);
     if(!s){showToast('❌ Solicitação não encontrada');return}
-    
     const terapeuta = terapeutas.find(t => t.id === s.terapeuta_id);
     if(!terapeuta){showToast('❌ Terapeuta não encontrado');return}
-    
     const novoSaldo = (terapeuta.saldo || 0) + s.qtd_coins;
-    
-    await sb.from('terapeutas').update({ 
-        saldo: novoSaldo,
-        plano_id: s.plano_id || null
-    }).eq('id', s.terapeuta_id);
-    
-    await sb.from('solicitacoes_recarga').update({ 
-        status: 'aprovada' 
-    }).eq('id', id);
-    
-    await carregarS();
-    await carregarT();
-    atualizarDash();
+    await sb.from('terapeutas').update({saldo: novoSaldo, plano_id: s.plano_id || null}).eq('id', s.terapeuta_id);
+    await sb.from('solicitacoes_recarga').update({status: 'aprovada'}).eq('id', id);
+    await carregarS();await carregarT();atualizarDash();
     showToast(`✅ Aprovado! +${s.qtd_coins} Synapse Coins para ${s.terapeuta_nome}`);
     playNotificationSound();
 }
-
-async function recusarS(id){
-    const s=solicitacoes.find(s=>s.id==id);
-    await sb.from('solicitacoes_recarga').update({status:'recusada'}).eq('id',id);
-    await carregarS();
-    showToast('❌ Solicitação recusada');
-}
-async function addCred(){
-    const tid=document.getElementById('credT').value;const pd=document.getElementById('pkg').value.split('|');
-    if(!tid||!pd[0]){showToast('❌ Selecione terapeuta e plano');return}
-    const t=terapeutas.find(t=>t.id==tid);if(!t)return;
-    const q=parseInt(pd[0]),v=parseFloat(pd[1]),planoId=pd[2];
-    const novoSaldo = (t.saldo || 0) + q;
-    await sb.from('terapeutas').update({saldo:novoSaldo,plano_id:planoId}).eq('id',tid);
-    await sb.from('solicitacoes_recarga').insert([{terapeuta_id:tid,terapeuta_nome:t.nome,terapeuta_email:t.email,plano_id:planoId,plano_nome:`${q} Coins (Manual)`,qtd_coins:q,valor:v,tipo:'manual',status:'aprovada'}]);
-    await carregarT();await carregarS();atualizarDash();
-    showToast(`✅ Adicionado ${q} Coins para ${t.nome}`);
-}
-function renderHist(){
-    const c=document.getElementById('recHist');if(!c)return;
-    const a=solicitacoes.filter(s=>s.status==='aprovada').slice(0,20);
-    if(!a.length){c.innerHTML='<p style="text-align:center;color:#6B6B7A">📭 Nenhuma recarga aprovada ainda</p>';return}
-    c.innerHTML=`<table class="data-table"><thead><tr><th>Data</th><th>Terapeuta</th><th>Plano</th><th>Coins</th><th>Valor</th></tr></thead><tbody>${a.map(r=>`<tr>
+async function recusarS(id){const s=solicitacoes.find(s=>s.id==id);await sb.from('solicitacoes_recarga').update({status:'recusada'}).eq('id',id);await carregarS();showToast('❌ Solicitação recusada')}
+async function addCred(){const tid=document.getElementById('credT').value;const pd=document.getElementById('pkg').value.split('|');if(!tid||!pd[0]){showToast('❌ Selecione terapeuta e plano');return}const t=terapeutas.find(t=>t.id==tid);if(!t)return;const q=parseInt(pd[0]),v=parseFloat(pd[1]),planoId=pd[2];const novoSaldo = (t.saldo || 0) + q;await sb.from('terapeutas').update({saldo:novoSaldo,plano_id:planoId}).eq('id',tid);await sb.from('solicitacoes_recarga').insert([{terapeuta_id:tid,terapeuta_nome:t.nome,terapeuta_email:t.email,plano_id:planoId,plano_nome:`${q} Coins (Manual)`,qtd_coins:q,valor:v,tipo:'manual',status:'aprovada'}]);await carregarT();await carregarS();atualizarDash();showToast(`✅ Adicionado ${q} Coins para ${t.nome}`)}
+function renderHist(){const c=document.getElementById('recHist');if(!c)return;const a=solicitacoes.filter(s=>s.status==='aprovada').slice(0,20);if(!a.length){c.innerHTML='<p style="text-align:center;color:#6B6B7A">📭 Nenhuma recarga aprovada ainda</p>';return}c.innerHTML=`<table class="data-table"><thead><tr><th>Data</th><th>Terapeuta</th><th>Plano</th><th>Coins</th><th>Valor</th></tr></thead><tbody>${a.map(r=>`<tr>
         <td><small>${new Date(r.data_solicitacao).toLocaleDateString('pt-BR')}</small></td>
         <td>${r.terapeuta_nome}</small></td>
         <td>${r.plano_nome}</small></td>
         <td>+${r.qtd_coins}</small></td>
         <td>R$ ${r.valor.toFixed(2)}</small></td>
-    </tr>`).join('')}</tbody></td>`}
+    </tr>`).join('')}</tbody><td>`}
 
 async function carregarP(){const{data}=await sb.from('planos').select('*').order('preco');planos=data||[];renderP();popularSelects()}
 function renderP(){const c=document.getElementById('planosList');if(!c)return;if(!planos.length){c.innerHTML='<p style="text-align:center;color:#6B6B7A">Nenhum plano cadastrado</p>';return}c.innerHTML=planos.map(p=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:12px;background:#FFF;border-radius:12px;margin-bottom:8px;border:1px solid #E8E4F0"><div><strong>${p.nome}</strong> <span style="font-size:0.6rem;background:#E3F2FD;color:#5B8DEF;padding:2px 8px;border-radius:10px">${p.tipo}</span><br><span style="font-size:0.65rem">💰 ${p.coins} Synapse Coins</span></div><div style="text-align:right"><strong style="color:#6B4E9E">R$ ${p.preco.toFixed(2)}</strong><br><button class="btn-icon" onclick="abrirPlano('${p.id}')"><i class="fas fa-edit"></i></button><button class="btn-icon" onclick="toggleP('${p.id}')"><i class="fas ${p.status==='ativo'?'fa-power-off':'fa-play'}"></i></button></div></div>`).join('')}
