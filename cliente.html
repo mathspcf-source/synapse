@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>SYNAPSE | Portal do Terapeuta</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/renderers/CSS2DRenderer.js"></script>
+    <style>
+        :root{--primary:#6B4E9E;--primary-light:#F0EBF8;--primary-dark:#2D1B4E;--bg:#F8F7FC;--card-bg:#FFFFFF;--text:#2D1B4E;--text-secondary:#6B6B7A;--border:#E8E4F0;--success:#4CAF7A;--warning:#FF9800;--danger:#E57373;--white:#FFFFFF;--shadow-sm:0 2px 8px rgba(0,0,0,0.04);--shadow-md:0 8px 24px rgba(0,0,0,0.06);--radius-lg:20px;--radius-xl:24px}
+        *{margin:0;padding:0;box-sizing:border-box}body{font-family:'Inter',sans-serif;background:var(--bg);min-height:100vh;color:var(--text)}::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border);border-radius:20px}
+        .login-container{position:fixed;top:0;left:0;width:100%;height:100%;background:linear-gradient(135deg,#F0EBF8,#E8E4F0,#F5F3F7);display:flex;align-items:center;justify-content:center;z-index:1000}
+        .login-card{background:var(--white);border-radius:32px;padding:40px;width:400px;text-align:center;box-shadow:0 16px 40px rgba(0,0,0,0.08)}
+        .login-card .logo-icon{font-size:2.5rem;color:var(--primary);background:var(--primary-light);width:72px;height:72px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px}
+        .login-card h1{font-size:1.5rem;font-weight:700;color:var(--text)}.login-card .subtitle{color:var(--text-secondary);margin:6px 0 24px 0;font-size:0.8rem}
+        .login-card input{width:100%;background:var(--bg);border:2px solid var(--border);border-radius:50px;padding:12px 18px;margin-bottom:12px;font-size:0.85rem;outline:none}.login-card input:focus{border-color:var(--primary)}
+        .login-card button{width:100%;background:var(--primary);color:white;border:none;border-radius:50px;padding:12px;font-weight:600;font-size:0.9rem;cursor:pointer;margin-top:4px}.login-card button:hover{background:#5a3d8a}
+        .login-footer{margin-top:18px;padding-top:14px;border-top:1px solid var(--border);font-size:0.65rem;color:var(--text-secondary);line-height:1.7}.login-footer strong{color:var(--text)}.login-footer .whatsapp{color:#25D366;font-weight:600}
+        .error-msg{color:var(--danger);font-size:0.7rem;margin-top:12px;display:none}.error-msg.show{display:block}
+        .spinner{display:none;margin:10px auto;width:24px;height:24px;border:3px solid var(--border);border-top-color:var(--primary);border-radius:50%;animation:spin 0.8s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}
+        .top-nav{background:var(--primary-dark);padding:10px 24px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;box-shadow:0 4px 20px rgba(0,0,0,0.15);position:sticky;top:0;z-index:100}
+        .logo-area{display:flex;align-items:center;gap:8px}.logo-area i{font-size:1.4rem;color:#FFF}.logo-area h1{font-size:1.1rem;font-weight:700;color:#FFF}
+        .user-info{display:flex;align-items:center;gap:10px}.user-coins-mini{display:flex;align-items:center;gap:5px;background:rgba(255,255,255,0.1);padding:5px 12px;border-radius:25px;font-size:0.7rem;color:rgba(255,255,255,0.9);border:1px solid rgba(255,255,255,0.15)}.user-coins-mini i{color:#FFD700;font-size:0.65rem}.user-coins-mini span{font-weight:700;color:#FFF}
+        .nav-buttons{display:flex;gap:4px;flex-wrap:wrap}.nav-btn{background:transparent;color:rgba(255,255,255,0.65);border:1px solid transparent;padding:7px 14px;border-radius:25px;font-size:0.75rem;font-weight:500;cursor:pointer;display:flex;align-items:center;gap:5px;white-space:nowrap;position:relative}.nav-btn:hover{background:rgba(255,255,255,0.08);color:#FFF}.nav-btn.active{background:#FFF;color:var(--primary-dark);font-weight:600}.nav-btn.logout-btn{color:rgba(255,150,150,0.8)}.nav-btn.logout-btn:hover{background:rgba(229,115,115,0.15);color:#E57373}
+        .notif-dot{position:absolute;top:4px;right:4px;width:9px;height:9px;background:var(--danger);border-radius:50%;display:none;animation:pulse 1.5s infinite}@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+        .main-content{padding:24px 28px;max-width:1400px;margin:0 auto}.page-header{margin-bottom:20px}.page-header h1{font-size:1.4rem;font-weight:700}.page-header p{color:var(--text-secondary);font-size:0.75rem}
+        .panel{display:none}.panel.active{display:block;animation:fadePanel 0.3s ease}@keyframes fadePanel{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+        .card{background:var(--card-bg);border-radius:var(--radius-xl);padding:22px;margin-bottom:18px;border:1px solid var(--border);box-shadow:var(--shadow-sm)}.card h3{font-size:0.95rem;font-weight:600;color:var(--text);margin-bottom:16px;display:flex;align-items:center;gap:8px;justify-content:space-between}.card h3 i{color:var(--primary);background:var(--primary-light);padding:6px;border-radius:8px;font-size:0.85rem}
+        .card-title{display:flex;align-items:center;gap:8px}
+        .welcome-banner{background:linear-gradient(135deg,#6B4E9E,#8B6FC0);border-radius:var(--radius-xl);padding:28px;margin-bottom:22px;color:#FFF}.welcome-banner h2{font-size:1.3rem;font-weight:700;margin-bottom:4px}.welcome-banner p{opacity:0.85;font-size:0.8rem}
+        .stats-mini{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px}.stat-mini{background:var(--card-bg);border-radius:var(--radius-lg);padding:18px;text-align:center;border:1px solid var(--border);box-shadow:var(--shadow-sm);cursor:pointer;transition:0.2s}.stat-mini:hover{transform:translateY(-3px);box-shadow:var(--shadow-md)}.stat-mini-icon{font-size:1.5rem;color:var(--primary);margin-bottom:6px}.stat-mini-value{font-size:1.4rem;font-weight:700}.stat-mini-label{font-size:0.65rem;color:var(--text-secondary);text-transform:uppercase}
+        .two-columns{display:grid;grid-template-columns:1fr 1fr;gap:18px}.data-table{width:100%;border-collapse:collapse;font-size:0.78rem}.data-table th,.data-table td{padding:10px 8px;border-bottom:1px solid var(--border)}.data-table th{color:var(--primary);background:var(--primary-light);font-size:0.65rem;text-transform:uppercase}
+        .status-badge{display:inline-block;padding:3px 12px;border-radius:15px;font-size:0.6rem;font-weight:600}.status-confirmado{background:#E8F5E9;color:#4CAF7A}.status-pendente{background:#FFF3E0;color:#FF9800}
+        .form-group{margin-bottom:12px}.form-group label{display:block;font-size:0.65rem;font-weight:600;margin-bottom:4px;text-transform:uppercase}.form-group input,.form-group select,.form-group textarea{width:100%;background:var(--bg);border:2px solid var(--border);border-radius:12px;padding:9px 12px;font-size:0.8rem;outline:none;font-family:inherit;resize:vertical}.form-group input:focus,.form-group select:focus{border-color:var(--primary)}
+        .btn-primary{background:var(--primary);color:white;border:none;padding:10px 24px;border-radius:25px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-size:0.8rem;transition:0.2s}.btn-primary:hover{background:#5a3d8a;transform:translateY(-2px)}.btn-warning{background:#FF9800;color:white}.btn-warning:hover{background:#F57C00}
+        .btn-outline{background:transparent;border:2px solid var(--border);padding:7px 16px;border-radius:25px;cursor:pointer;font-weight:500;font-size:0.7rem;display:inline-flex;align-items:center;gap:5px}.btn-outline:hover{border-color:var(--primary);color:var(--primary)}
+        .btn-sm{padding:4px 10px;font-size:0.6rem;border-radius:15px}.btn-icon{background:transparent;border:none;color:var(--primary);cursor:pointer;padding:5px;font-size:0.85rem}.btn-icon:hover{background:var(--primary-light)}.btn-icon.danger{color:var(--danger)}.btn-icon.danger:hover{background:#FFEBEE}
+        .btn-clear-chat{background:#E57373;color:white;border:none;padding:5px 12px;border-radius:20px;cursor:pointer;font-size:0.65rem;display:inline-flex;align-items:center;gap:5px}.btn-clear-chat:hover{background:#D32F2F}
+        .pacotes-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px}.pacote-card{background:var(--card-bg);border-radius:var(--radius-lg);padding:20px;text-align:center;border:2px solid var(--border);cursor:pointer;transition:0.3s;position:relative}.pacote-card:hover{border-color:var(--primary);transform:translateY(-3px)}.pacote-qtd{font-size:1.6rem;font-weight:700}.pacote-preco{font-size:1rem;font-weight:700;color:var(--primary);margin-top:6px}.pacote-badge{position:absolute;top:10px;right:10px;background:var(--success);color:white;padding:3px 8px;border-radius:15px;font-size:0.55rem;font-weight:600}
+        .prontuario-card{background:#FAFAFC;border-radius:var(--radius-lg);padding:14px;margin-bottom:10px;border-left:3px solid var(--primary);cursor:pointer}.prontuario-card:hover{background:var(--primary-light)}.prontuario-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}.prontuario-cliente{font-weight:600;font-size:0.8rem}.prontuario-data{font-size:0.6rem;color:var(--text-secondary)}
+        .activity-item{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);font-size:0.78rem}.progress-bar{background:#E8E4F0;border-radius:8px;height:5px;margin-top:10px;overflow:hidden}.progress-fill{background:linear-gradient(90deg,#6B4E9E,#8B6FC0);height:100%;border-radius:8px;transition:0.5s}
+        .chat-container{display:flex;flex-direction:column;height:350px;border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden}.chat-messages{flex:1;overflow-y:auto;padding:14px;background:#FAFAFC;display:flex;flex-direction:column;gap:8px}.chat-message{max-width:75%;padding:8px 14px;border-radius:16px;font-size:0.78rem}.chat-message.sent{background:var(--primary);color:white;align-self:flex-end}.chat-message.received{background:#FFF;border:1px solid var(--border);align-self:flex-start}.chat-message .msg-time{font-size:0.55rem;opacity:0.7;margin-top:3px}.chat-input-area{display:flex;padding:10px;gap:8px;background:#FFF;border-top:1px solid var(--border)}.chat-input-area input{flex:1;border:2px solid var(--border);border-radius:25px;padding:8px 14px;font-size:0.78rem;outline:none}.chat-input-area button{background:var(--primary);color:white;border:none;width:38px;height:38px;border-radius:50%;cursor:pointer}
+        .modal-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.4);z-index:200;align-items:center;justify-content:center}.modal-overlay.show{display:flex}.modal-box{background:var(--white);border-radius:var(--radius-xl);padding:24px;width:480px;max-width:90%;box-shadow:0 16px 40px rgba(0,0,0,0.08);max-height:80vh;overflow-y:auto}.modal-box h3{margin-bottom:16px;font-size:1rem;display:flex;align-items:center;gap:7px}.modal-buttons{display:flex;gap:8px;margin-top:16px;justify-content:flex-end}
+        .toast{position:fixed;bottom:25px;left:50%;transform:translateX(-50%);background:var(--primary-dark);color:white;padding:8px 20px;border-radius:30px;font-size:0.75rem;z-index:300;animation:fIn 0.3s}@keyframes fIn{from{opacity:0;transform:translateX(-50%) translateY(10px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+        .timer-badge{display:inline-block;background:rgba(76,175,122,0.2);border:1px solid rgba(76,175,122,0.4);color:#4CAF7A;padding:5px 14px;border-radius:15px;font-size:0.68rem;font-weight:600}
+        .timer-badge-expiring{background:rgba(255,152,0,0.2);border-color:#FF9800;color:#FF9800}
+        .timer-badge-expired{background:rgba(229,115,115,0.2);border-color:#E57373;color:#E57373}
+        @media(max-width:1100px){.stats-mini{grid-template-columns:repeat(2,1fr)}.two-columns,.pacotes-grid{grid-template-columns:1fr}}
+    </style>
+</head>
+<body>
+
+<div id="loginContainer" class="login-container">
+    <div class="login-card">
+        <div class="logo-icon"><i class="fas fa-brain"></i></div>
+        <h1>SYNAPSE</h1>
+        <div class="subtitle">Portal do Terapeuta · Constelação Sistêmica</div>
+        <input type="email" id="loginEmail" placeholder="seu@email.com" value="maria@synapse.com">
+        <input type="password" id="loginPassword" placeholder="Sua senha" value="123456">
+        <div class="spinner" id="loginSpinner"></div>
+        <button id="btnLogin"><i class="fas fa-sign-in-alt"></i> Entrar</button>
+        <div id="loginError" class="error-msg"></div>
+        <div class="login-footer"><strong>Matheus Pacifico Evangelista</strong> © 2026<br>Todos os direitos reservados<br><i class="fab fa-whatsapp"></i> <span class="whatsapp">(79) 99645-8399</span></div>
+    </div>
+</div>
+
+<div id="dashboard" style="display:none">
+    <div class="top-nav">
+        <div class="logo-area"><i class="fas fa-brain"></i><h1>SYNAPSE</h1></div>
+        <div class="user-info"><div class="user-coins-mini"><i class="fas fa-coins"></i> <span id="saldoCoins">0</span> Synapse Coins</div></div>
+        <div class="nav-buttons">
+            <button class="nav-btn active" data-panel="inicio"><i class="fas fa-home"></i> Início</button>
+            <button class="nav-btn" data-panel="clientes"><i class="fas fa-address-book"></i> Clientes</button>
+            <button class="nav-btn" data-panel="agendamento"><i class="fas fa-calendar-check"></i> Agenda</button>
+            <button class="nav-btn" data-panel="prontuarios"><i class="fas fa-clipboard-list"></i> Prontuários</button>
+            <button class="nav-btn" data-panel="sala"><i class="fas fa-cube"></i> Sala 3D</button>
+            <button class="nav-btn" data-panel="planos"><i class="fas fa-crown"></i> Planos</button>
+            <button class="nav-btn" data-panel="chat"><i class="fas fa-comments"></i> Chat<span class="notif-dot" id="chatNotif"></span></button>
+            <button class="nav-btn" data-panel="perfil"><i class="fas fa-user-cog"></i> Perfil</button>
+            <button class="nav-btn logout-btn" id="btnLogout"><i class="fas fa-sign-out-alt"></i></button>
+        </div>
+    </div>
+    <div class="main-content">
+        <div class="page-header"><h1 id="pageTitle">Início</h1><p id="pageDesc"></p></div>
+        
+        <div id="panelInicio" class="panel active">
+            <div class="welcome-banner"><h2 id="welcomeNome">Bem-vindo(a)</h2><p>Que tal uma constelação hoje?</p></div>
+            <div class="stats-mini">
+                <div class="stat-mini" onclick="nav('sala')"><div class="stat-mini-icon"><i class="fas fa-cube"></i></div><div class="stat-mini-value" id="statConstelacoes">0</div><div class="stat-mini-label">Constelações</div></div>
+                <div class="stat-mini" onclick="nav('clientes')"><div class="stat-mini-icon"><i class="fas fa-users"></i></div><div class="stat-mini-value" id="statClientesCount">0</div><div class="stat-mini-label">Clientes</div></div>
+                <div class="stat-mini" onclick="nav('agendamento')"><div class="stat-mini-icon"><i class="fas fa-calendar-check"></i></div><div class="stat-mini-value" id="statAgendamentosCount">0</div><div class="stat-mini-label">Agendados</div></div>
+                <div class="stat-mini" onclick="nav('prontuarios')"><div class="stat-mini-icon"><i class="fas fa-clipboard-list"></i></div><div class="stat-mini-value" id="statProntuariosCount">0</div><div class="stat-mini-label">Prontuários</div></div>
+            </div>
+            <div class="two-columns"><div class="card"><h3><i class="fas fa-clock"></i> Próximos Agendamentos</h3><div id="proximosAgendamentos"></div></div><div class="card"><h3><i class="fas fa-chart-line"></i> Progresso</h3><div style="text-align:center;padding:8px"><div style="font-size:2.2rem;font-weight:700;color:var(--primary)" id="usoPercent">0%</div><div class="progress-bar"><div class="progress-fill" style="width:0%"></div></div><p style="font-size:0.65rem;margin-top:8px">✨ Constelações realizadas vs Total de coins</p></div></div></div>
+        </div>
+        
+        <div id="panelClientes" class="panel"><div class="card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px"><h3 style="margin-bottom:0"><i class="fas fa-address-book"></i> Clientes</h3><button class="btn-primary" onclick="abrirModalCliente()"><i class="fas fa-plus"></i> Novo Cliente</button></div><div id="clientesTableContainer"><table class="data-table"><thead><tr><th>Nome</th><th>Telefone</th><th>E-mail</th><th>Const.</th><th>Ações</th></tr></thead><tbody id="clientesTbody"></tbody></table></div></div></div>
+        
+        <div id="panelAgendamento" class="panel"><div class="card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px"><h3 style="margin-bottom:0"><i class="fas fa-calendar-check"></i> Agendamentos</h3><button class="btn-primary" onclick="abrirModalAgendamento()"><i class="fas fa-plus"></i> Novo Agendamento</button></div><div id="agendamentosList"></div></div></div>
+        
+        <div id="panelProntuarios" class="panel"><div class="card"><div style="display:flex;justify-content:space-between;margin-bottom:16px"><h3 style="margin-bottom:0"><i class="fas fa-clipboard-list"></i> Prontuários</h3><button class="btn-primary" onclick="abrirModalProntuario()"><i class="fas fa-plus"></i> Novo Prontuário</button></div><div id="listaProntuarios"></div></div></div>
+        
+        <div id="panelSala" class="panel">
+            <div class="card" style="text-align:center;padding:40px">
+                <div style="font-size:3.5rem;color:var(--primary);margin-bottom:14px"><i class="fas fa-cube"></i></div>
+                <h2>Sala de Constelação 3D</h2>
+                <p style="color:var(--text-secondary);margin:12px 0 20px">Campo circular com arquétipos e vínculos sistêmicos.<br>💰 Cada constelação consome 1 Synapse Coin | ⏱️ Sessão válida por 2 horas</p>
+                <button class="btn-primary" id="btnEntrarSala" onclick="abrirSala3D()" style="font-size:0.95rem;padding:12px 36px"><i class="fas fa-vr-cardboard"></i> Iniciar Nova Constelação</button>
+                <div id="sessaoAtivaInfo" style="margin-top:16px"></div>
+                <p style="font-size:0.68rem;color:var(--text-secondary);margin-top:12px">💰 1 Synapse Coin por constelação | ⏱️ 2 horas de sessão | 💳 Saldo: <strong id="salaSaldo">0</strong></p>
+            </div>
+        </div>
+        
+        <div id="panelPlanos" class="panel">
+            <div class="card" style="background:linear-gradient(135deg,#6B4E9E,#8B6FC0);color:white;margin-bottom:18px"><div style="display:flex;justify-content:space-between"><div><h3 style="color:white"><i class="fas fa-crown" style="color:#FFD700"></i> Plano Atual</h3><p style="opacity:0.9;font-size:0.78rem" id="planoAtualNome">Sem plano ativo</p></div><div style="text-align:right"><div style="font-size:1.8rem;font-weight:700" id="planoAtualCoins">0</div><div style="font-size:0.65rem">Synapse Coins</div></div></div></div>
+            <div class="card"><h3><i class="fas fa-shopping-cart"></i> Planos Disponíveis</h3><div class="pacotes-grid" id="planosGrid"></div><p style="font-size:0.7rem;color:var(--text-secondary);margin-top:12px;text-align:center">📱 Ao clicar, você será redirecionado ao WhatsApp. Após o pagamento, o administrador aprovará sua recarga.</p></div>
+        </div>
+        
+        <div id="panelChat" class="panel">
+            <div class="card">
+                <h3>
+                    <span class="card-title"><i class="fas fa-comments"></i> Chat com Suporte</span>
+                    <button class="btn-clear-chat" onclick="limparChatCliente()"><i class="fas fa-trash-alt"></i> Apagar Conversa</button>
+                </h3>
+                <div class="chat-container">
+                    <div class="chat-messages" id="chatMessages"></div>
+                    <div class="chat-input-area">
+                        <input type="text" id="chatInput" placeholder="Digite sua mensagem...">
+                        <button onclick="enviarMsg()"><i class="fas fa-paper-plane"></i></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="panelPerfil" class="panel"><div class="card"><h3><i class="fas fa-user-cog"></i> Meus Dados</h3><div class="form-group"><label>Nome</label><input type="text" id="perfilNome" disabled></div><div class="form-group"><label>E-mail</label><input type="email" id="perfilEmail" disabled></div><div class="form-group"><label>Telefone</label><input type="text" id="perfilTelefone"></div><div class="form-group"><label>Nova Senha</label><input type="password" id="novaSenha" placeholder="Deixe em branco para manter"></div><button class="btn-primary" onclick="atualizarPerfil()"><i class="fas fa-save"></i> Atualizar Perfil</button></div><div class="card"><h3><i class="fas fa-info-circle"></i> Informações</h3><p><strong>Matheus Pacifico Evangelista</strong> © 2026 · v3.2<br><i class="fab fa-whatsapp"></i> (79) 99645-8399<br><i class="fas fa-envelope"></i> contato@synapse.com</p></div></div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="modalCliente"><div class="modal-box"><h3 id="modalClienteTitle">Cliente</h3><input type="hidden" id="editClienteId"><div class="form-group"><label>Nome</label><input type="text" id="clienteNome"></div><div class="form-group"><label>Telefone</label><input type="text" id="clienteTelefone"></div><div class="form-group"><label>E-mail</label><input type="email" id="clienteEmail"></div><div class="modal-buttons"><button class="btn-outline" onclick="fecharM('modalCliente')">Cancelar</button><button class="btn-primary" onclick="salvarCliente()">Salvar</button></div></div></div>
+<div class="modal-overlay" id="modalAgendamento"><div class="modal-box"><h3>Agendamento</h3><div class="form-group"><label>Cliente</label><select id="agendamentoCliente"></select></div><div class="form-group"><label>Data</label><input type="date" id="agendamentoData"></div><div class="form-group"><label>Horário</label><input type="time" id="agendamentoHora"></div><div class="form-group"><label>Tipo</label><select id="agendamentoTipo"><option>Constelação Familiar</option><option>Sessão Individual</option></select></div><div class="modal-buttons"><button class="btn-outline" onclick="fecharM('modalAgendamento')">Cancelar</button><button class="btn-primary" onclick="salvarAgendamento()">Agendar</button></div></div></div>
+<div class="modal-overlay" id="modalProntuario"><div class="modal-box"><h3>Prontuário</h3><div class="form-group"><label>Cliente</label><select id="prontuarioClienteSelect"></select></div><div class="form-group"><label>Observações</label><textarea id="prontuarioTexto" rows="3" placeholder="Registro da sessão..."></textarea></div><div class="modal-buttons"><button class="btn-outline" onclick="fecharM('modalProntuario')">Cancelar</button><button class="btn-primary" onclick="salvarProntuario()">Salvar</button></div></div></div>
+<div class="modal-overlay" id="modalVerProntuario"><div class="modal-box" style="width:550px"><h3>Prontuário de <span id="verProntuarioNome"></span></h3><div id="verProntuarioConteudo"></div><div class="modal-buttons"><button class="btn-outline" onclick="fecharM('modalVerProntuario')">Fechar</button></div></div></div>
+
+<script>
+const SB_URL='https://wedhebcoxljyeoxhgaob.supabase.co';
+const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndlZGhlYmNveGxqeWVveGhnYW9iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY4OTgwNDgsImV4cCI6MjA5MjQ3NDA0OH0._Xnqxp6YSazOK37xP5qSi5gOuThvqGm5Kw_xmWZU8XQ';
+const sb=supabase.createClient(SB_URL,SB_KEY);
+let usuario=null,clientes=[],agendamentos=[],prontuarios=[],planos=[],mensagens=[];
+let sessaoTimerInterval = null;
+
+// ⏰ CONFIGURAÇÃO DO TIMEOUT (2 HORAS)
+const TIMEOUT_HORAS = 2;
+const TIMEOUT_MS = TIMEOUT_HORAS * 60 * 60 * 1000;
+
+document.getElementById('btnLogin').onclick=login;
+document.getElementById('loginPassword').addEventListener('keypress',e=>{if(e.key==='Enter')login()});
+document.getElementById('btnLogout').onclick=()=>{
+    if(usuario){
+        const uid=usuario.id;
+        localStorage.removeItem('sessaoConstelacao_'+uid);
+        localStorage.removeItem('sessaoInicio_'+uid);
+        localStorage.removeItem('salaEstado_'+uid);
+        localStorage.removeItem('sessaoFinalizada_'+uid);
+    }
+    if(sessaoTimerInterval) clearInterval(sessaoTimerInterval);
+    usuario=null;
+    document.getElementById('dashboard').style.display='none';
+    document.getElementById('loginContainer').style.display='flex';
+};
+
+async function login(){
+    const e=document.getElementById('loginEmail').value.trim(),s=document.getElementById('loginPassword').value;
+    const spin=document.getElementById('loginSpinner'),err=document.getElementById('loginError');
+    if(!e||!s){err.textContent='Preencha todos os campos';err.classList.add('show');return}
+    spin.style.display='block';err.classList.remove('show');
+    const{data,error}=await sb.from('terapeutas').select('*').eq('email',e).eq('senha',s).eq('status','ativo').single();
+    spin.style.display='none';
+    if(error||!data){
+        err.textContent='E-mail ou senha incorretos';
+        err.classList.add('show');
+        return;
+    }
+    if(data.email==='admin@synapse.com'){
+        err.textContent='Acesso administrativo use o painel Admin';
+        err.classList.add('show');
+        return;
+    }
+    usuario=data;
+    document.getElementById('loginContainer').style.display='none';
+    document.getElementById('dashboard').style.display='block';
+    atualizarSaldos();
+    document.getElementById('perfilNome').value=usuario.nome;
+    document.getElementById('perfilEmail').value=usuario.email;
+    document.getElementById('perfilTelefone').value=usuario.telefone||'';
+    document.getElementById('welcomeNome').textContent='Bem-vindo(a), '+(usuario.nome?.split(' ')[0]||'Terapeuta');
+    document.getElementById('statConstelacoes').textContent=usuario.constelacoes_realizadas||0;
+    await carregarTudo();
+    setInterval(verificarNotificacoes,8000);
+    verificarSessaoAtiva();
+    iniciarTimerSessao();
+    showToast('✅ Bem-vindo(a) ao SYNAPSE!');
+}
+
+function iniciarTimerSessao() {
+    if(sessaoTimerInterval) clearInterval(sessaoTimerInterval);
+    sessaoTimerInterval = setInterval(() => {
+        if(usuario && document.getElementById('panelSala').classList.contains('active')) {
+            verificarSessaoAtiva();
+        }
+    }, 60000);
+}
+
+function atualizarSaldos(){const s=usuario?.saldo||0;['saldoCoins','salaSaldo','planoAtualCoins'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=s})}
+
+function verificarSessaoAtiva(){
+    if(!usuario) return;
+    const sessaoId = localStorage.getItem('sessaoConstelacao_'+usuario.id);
+    const sessaoInicio = localStorage.getItem('sessaoInicio_'+usuario.id);
+    const sessaoFinalizada = localStorage.getItem('sessaoFinalizada_'+usuario.id);
+    const btn = document.getElementById('btnEntrarSala');
+    const info = document.getElementById('sessaoAtivaInfo');
+    
+    if(sessaoId && sessaoInicio && !sessaoFinalizada) {
+        const tempoPassado = Date.now() - parseInt(sessaoInicio);
+        
+        if(tempoPassado > TIMEOUT_MS) {
+            localStorage.removeItem('sessaoConstelacao_'+usuario.id);
+            localStorage.removeItem('sessaoInicio_'+usuario.id);
+            localStorage.removeItem('salaEstado_'+usuario.id);
+            if(info) info.innerHTML = `<span class="timer-badge timer-badge-expired">⏰ Sessão expirou após ${TIMEOUT_HORAS} horas. Inicie uma nova constelação (1 Coin).</span>`;
+            if(btn) btn.innerHTML = '<i class="fas fa-vr-cardboard"></i> Nova Constelação (1 Coin)';
+            return;
+        }
+        
+        const tempoRestante = TIMEOUT_MS - tempoPassado;
+        const minutosRest = Math.floor(tempoRestante / 60000);
+        const horasRest = Math.floor(minutosRest / 60);
+        const minsRest = minutosRest % 60;
+        
+        let tempoMsg = '';
+        let cssClass = 'timer-badge';
+        
+        if(horasRest > 0) {
+            tempoMsg = `${horasRest}h ${minsRest}min restantes`;
+        } else {
+            tempoMsg = `${minsRest}min restantes`;
+            if(minutosRest <= 15) cssClass = 'timer-badge timer-badge-expiring';
+        }
+        
+        if(info) info.innerHTML = `<span class="${cssClass}">🔄 Sessão ativa! Expira em ${tempoMsg}. Clique em "Retornar" para continuar.</span>`;
+        if(btn) btn.innerHTML = '<i class="fas fa-door-open"></i> Retornar à Constelação';
+    } else {
+        if(info) info.innerHTML = '';
+        if(btn) btn.innerHTML = '<i class="fas fa-vr-cardboard"></i> Nova Constelação (1 Coin)';
+    }
+}
+
+async function verificarNotificacoes(){if(!usuario)return;const{data}=await sb.from('mensagens').select('*').eq('is_admin',true).eq('lida',false);document.getElementById('chatNotif').style.display=data&&data.length>0?'block':'none'}
+async function marcarLidas(){if(!usuario)return;await sb.from('mensagens').update({lida:true}).eq('terapeuta_id',usuario.id).eq('is_admin',true).eq('lida',false);document.getElementById('chatNotif').style.display='none';await carregarM()}
+async function carregarTudo(){await Promise.all([carregarClientes(),carregarAgendamentos(),carregarProntuarios(),carregarPlanos(),carregarM()]);atualizarStats();atualizarProgresso();atualizarHora()}
+function atualizarProgresso(){if(!usuario)return;const total = (usuario.constelacoes_realizadas||0) + (usuario.saldo||0);const percent = total > 0 ? ((usuario.constelacoes_realizadas||0)/total*100).toFixed(0) : 0;document.getElementById('usoPercent').textContent=percent+'%';const pf=document.querySelector('.progress-fill');if(pf)pf.style.width=percent+'%'}
+function atualizarStats(){document.getElementById('statClientesCount').textContent=clientes.length;document.getElementById('statAgendamentosCount').textContent=agendamentos.filter(a=>a.status!=='cancelado').length;document.getElementById('statProntuariosCount').textContent=prontuarios.length;atualizarSaldos();document.getElementById('statConstelacoes').textContent=usuario?.constelacoes_realizadas||0;atualizarProgresso()}
+function atualizarHora(){const a=new Date();document.getElementById('pageDesc').innerHTML=`<i class="far fa-calendar-alt"></i> ${a.toLocaleDateString('pt-BR',{weekday:'long',year:'numeric',month:'long',day:'numeric'})} · <i class="far fa-clock"></i> ${a.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}`}
+setInterval(atualizarHora,1000);
+document.querySelectorAll('.nav-btn[data-panel]').forEach(b=>b.addEventListener('click',()=>nav(b.dataset.panel)));
+async function nav(p){document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));const m={inicio:'panelInicio',clientes:'panelClientes',agendamento:'panelAgendamento',prontuarios:'panelProntuarios',sala:'panelSala',planos:'panelPlanos',chat:'panelChat',perfil:'panelPerfil'};document.getElementById(m[p]).classList.add('active');document.querySelectorAll('.nav-btn[data-panel]').forEach(b=>b.classList.remove('active'));document.querySelector(`.nav-btn[data-panel="${p}"]`).classList.add('active');document.getElementById('pageTitle').textContent={inicio:'Início',clientes:'Clientes',agendamento:'Agenda',prontuarios:'Prontuários',sala:'Sala 3D',planos:'Planos',chat:'Chat',perfil:'Perfil'}[p];if(p==='chat')await marcarLidas();if(p==='sala')verificarSessaoAtiva()}
+
+async function carregarClientes(){if(!usuario)return;const{data}=await sb.from('clientes').select('*').eq('terapeuta_id',usuario.id).order('nome');clientes=data||[];renderClientes();popularSelectClientes()}
+function renderClientes(){const tbody=document.getElementById('clientesTbody');if(!tbody)return;if(!clientes.length){tbody.innerHTML='<tr><td colspan="5" style="text-align:center;color:#6B6B7A;padding:20px">📭 Nenhum cliente cadastrado</td></tr>';return}tbody.innerHTML=clientes.map(c=>`<tr><td><strong>${c.nome}</strong></td><td>${c.telefone||'-'}</td><td>${c.email||'-'}</td><td>✨ ${c.constelacoes||0}</td><td><button class="btn-icon" onclick="verProntuario('${c.nome}')"><i class="fas fa-clipboard-list"></i></button><button class="btn-icon" onclick="editarCliente('${c.id}')"><i class="fas fa-edit"></i></button><button class="btn-icon danger" onclick="removerCliente('${c.id}')"><i class="fas fa-trash-alt"></i></button></td></tr>`).join('');atualizarStats()}
+function abrirModalCliente(){document.getElementById('modalClienteTitle').innerHTML='<i class="fas fa-user-plus"></i> Novo Cliente';document.getElementById('editClienteId').value='';document.getElementById('clienteNome').value='';document.getElementById('clienteTelefone').value='';document.getElementById('clienteEmail').value='';document.getElementById('modalCliente').classList.add('show')}
+async function editarCliente(id){const c=clientes.find(c=>c.id==id);if(!c)return;document.getElementById('modalClienteTitle').innerHTML='<i class="fas fa-edit"></i> Editar Cliente';document.getElementById('editClienteId').value=c.id;document.getElementById('clienteNome').value=c.nome;document.getElementById('clienteTelefone').value=c.telefone||'';document.getElementById('clienteEmail').value=c.email||'';document.getElementById('modalCliente').classList.add('show')}
+async function salvarCliente(){const id=document.getElementById('editClienteId').value;const d={nome:document.getElementById('clienteNome').value,telefone:document.getElementById('clienteTelefone').value,email:document.getElementById('clienteEmail').value,terapeuta_id:usuario.id};if(id){await sb.from('clientes').update(d).eq('id',id);showToast('✅ Cliente atualizado!')}else{await sb.from('clientes').insert([d]);showToast('✅ Cliente adicionado!')}fecharM('modalCliente');await carregarClientes()}
+async function removerCliente(id){if(!confirm('Remover este cliente?'))return;await sb.from('clientes').delete().eq('id',id);await carregarClientes();showToast('🗑️ Cliente removido!')}
+function popularSelectClientes(){const s1=document.getElementById('agendamentoCliente');const s2=document.getElementById('prontuarioClienteSelect');const opts=clientes.map(c=>`<option value="${c.nome}">${c.nome}</option>`).join('');if(s1)s1.innerHTML='<option value="">Selecione</option>'+opts;if(s2)s2.innerHTML='<option value="">Selecione</option>'+opts}
+
+async function carregarAgendamentos(){if(!usuario)return;const{data}=await sb.from('agendamentos').select('*').eq('terapeuta_id',usuario.id).order('data',{ascending:true});agendamentos=data||[];renderAgendamentos()}
+function renderAgendamentos(){const c=document.getElementById('agendamentosList');if(!c)return;const ativos=agendamentos.filter(a=>a.status!=='cancelado');if(!ativos.length){c.innerHTML='<p style="text-align:center;color:#6B6B7A;padding:20px">📅 Nenhum agendamento</p>';return}c.innerHTML=ativos.map(a=>{const sc=a.status==='confirmado'?'status-confirmado':'status-pendente';return`<div class="prontuario-card" style="border-left-color:${a.status==='confirmado'?'#4CAF7A':'#FF9800'}"><div class="prontuario-header"><span class="prontuario-cliente">${a.cliente_nome}</span><span class="status-badge ${sc}">${a.status==='confirmado'?'Confirmado':'Pendente'}</span></div><div class="prontuario-data">📅 ${new Date(a.data+'T00:00').toLocaleDateString('pt-BR')} · ⏰ ${a.hora} · ${a.tipo}</div><div style="display:flex;gap:6px;margin-top:6px">${a.status==='pendente'?`<button class="btn-outline btn-sm" onclick="confirmarAgendamento('${a.id}')" style="color:#4CAF7A;border-color:#4CAF7A"><i class="fas fa-check"></i> Confirmar</button>`:''}<button class="btn-outline btn-sm" onclick="remarcarAgendamento('${a.id}')"><i class="fas fa-calendar-alt"></i> Remarcar</button><button class="btn-outline btn-sm" onclick="cancelarAgendamento('${a.id}')" style="color:#E57373;border-color:#E57373"><i class="fas fa-times"></i> Cancelar</button></div></div>`}).join('');atualizarStats();renderProximos()}
+async function confirmarAgendamento(id){await sb.from('agendamentos').update({status:'confirmado'}).eq('id',id);await carregarAgendamentos();showToast('✅ Agendamento confirmado!')}
+function remarcarAgendamento(id){const a=agendamentos.find(a=>a.id==id);if(!a)return;document.getElementById('agendamentoCliente').value=a.cliente_nome;document.getElementById('agendamentoData').value=a.data;document.getElementById('agendamentoHora').value=a.hora;document.getElementById('agendamentoTipo').value=a.tipo;document.getElementById('modalAgendamento').classList.add('show')}
+async function cancelarAgendamento(id){if(!confirm('Cancelar este agendamento?'))return;await sb.from('agendamentos').update({status:'cancelado'}).eq('id',id);await carregarAgendamentos();showToast('❌ Agendamento cancelado')}
+function abrirModalAgendamento(){document.getElementById('agendamentoCliente').value='';document.getElementById('agendamentoData').value='';document.getElementById('agendamentoHora').value='';document.getElementById('modalAgendamento').classList.add('show')}
+async function salvarAgendamento(){const cliente=document.getElementById('agendamentoCliente').value;const data=document.getElementById('agendamentoData').value;const hora=document.getElementById('agendamentoHora').value;const tipo=document.getElementById('agendamentoTipo').value;if(!cliente||!data||!hora){showToast('❌ Preencha todos os campos');return}await sb.from('agendamentos').insert([{terapeuta_id:usuario.id,cliente_nome:cliente,data,hora,tipo,status:'pendente'}]);fecharM('modalAgendamento');await carregarAgendamentos();showToast('✅ Agendamento realizado!')}
+function renderProximos(){const c=document.getElementById('proximosAgendamentos');if(!c)return;const prox=agendamentos.filter(a=>a.status!=='cancelado').slice(0,3);c.innerHTML=prox.length?prox.map(a=>`<div class="activity-item"><span><i class="fas fa-circle" style="font-size:0.4rem;color:${a.status==='confirmado'?'#4CAF7A':'#FF9800'}"></i> ${a.cliente_nome}</span><span>📅 ${new Date(a.data+'T00:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'})} ⏰ ${a.hora}</span></div>`).join(''):'<div class="activity-item">📭 Nenhum agendamento</div>'}
+
+async function carregarProntuarios(){if(!usuario)return;const{data}=await sb.from('prontuarios').select('*').eq('terapeuta_id',usuario.id).order('data',{ascending:false});prontuarios=data||[];renderProntuarios()}
+function renderProntuarios(){const c=document.getElementById('listaProntuarios');if(!c)return;const grouped={};prontuarios.forEach(p=>{if(!grouped[p.cliente_nome])grouped[p.cliente_nome]=[];grouped[p.cliente_nome].push(p)});const html=Object.entries(grouped).map(([cliente,pts])=>{const ultimo=pts[0];return`<div class="prontuario-card" onclick="verProntuario('${cliente}')"><div class="prontuario-header"><span class="prontuario-cliente">${cliente}</span><span class="prontuario-data">📝 ${pts.length} registro(s)</span></div><div style="font-size:0.7rem;color:#6B6B7A">Último: ${new Date(ultimo.data).toLocaleDateString('pt-BR')} · ${ultimo.texto.substring(0,60)}...</div></div>`}).join('');c.innerHTML=html||'<p style="text-align:center;color:#6B6B7A">📭 Nenhum prontuário</p>';atualizarStats()}
+function abrirModalProntuario(cliente){document.getElementById('prontuarioClienteSelect').value=cliente||'';document.getElementById('prontuarioTexto').value='';document.getElementById('modalProntuario').classList.add('show')}
+async function salvarProntuario(){const cliente=document.getElementById('prontuarioClienteSelect').value;const texto=document.getElementById('prontuarioTexto').value.trim();if(!cliente||!texto){showToast('❌ Preencha todos os campos');return}await sb.from('prontuarios').insert([{terapeuta_id:usuario.id,cliente_nome:cliente,texto}]);await sb.from('clientes').update({constelacoes: (clientes.find(c=>c.nome===cliente)?.constelacoes||0)+1}).eq('nome',cliente).eq('terapeuta_id',usuario.id);fecharM('modalProntuario');await carregarProntuarios();await carregarClientes();showToast('✅ Prontuário salvo!')}
+function verProntuario(nome){const pts=prontuarios.filter(p=>p.cliente_nome===nome);document.getElementById('verProntuarioNome').textContent=nome;document.getElementById('verProntuarioConteudo').innerHTML=pts.length?pts.map(p=>`<div style="margin-bottom:12px;"><strong>📅 ${new Date(p.data).toLocaleDateString('pt-BR')}</strong><p style="margin-top:5px;">${p.texto}</p></div>`).join('<hr>')+`<button class="btn-primary" onclick="fecharM('modalVerProntuario');abrirModalProntuario('${nome}')">+ Novo Registro</button>`:'<p>📭 Nenhum prontuário encontrado.</p><button class="btn-primary" onclick="fecharM(\'modalVerProntuario\');abrirModalProntuario(\''+nome+'\')">Criar Primeiro Prontuário</button>';document.getElementById('modalVerProntuario').classList.add('show')}
+
+async function carregarPlanos(){const{data}=await sb.from('planos').select('*').eq('status','ativo').order('preco');planos=data||[];const grid=document.getElementById('planosGrid');if(grid)grid.innerHTML=planos.map(p=>`<div class="pacote-card" onclick="solicitarPlano('${p.id}')"><div class="pacote-qtd">💰 ${p.coins}</div><div>Synapse Coins</div><div class="pacote-preco">R$ ${p.preco.toFixed(2)}${p.tipo==='mensal'?'/mês':''}</div><div style="font-size:0.6rem;color:#6B6B7A;margin-top:5px">📱 Clique para comprar</div>${p.tipo==='mensal'&&p.coins>=50?'<div class="pacote-badge">Popular</div>':''}</div>`).join('');const pa=planos.find(p=>p.id===usuario?.plano_id);document.getElementById('planoAtualNome').textContent=pa?pa.nome:'Sem plano ativo'}
+
+// ✅ FUNÇÃO CORRIGIDA DE SOLICITAÇÃO DE PLANO
+async function solicitarPlano(planoId){
+    const p = planos.find(p => p.id == planoId);
+    if(!p){showToast('❌ Plano não encontrado');return;}
+    if(!usuario){showToast('❌ Faça login primeiro');return;}
+    showToast('📱 Criando solicitação...');
+    try {
+        const { error } = await sb.from('solicitacoes_recarga').insert([{ 
+            terapeuta_id: usuario.id, 
+            terapeuta_nome: usuario.nome, 
+            terapeuta_email: usuario.email,
+            plano_id: p.id,
+            plano_nome: p.nome, 
+            qtd_coins: p.coins, 
+            valor: p.preco, 
+            tipo: p.tipo, 
+            status: 'pendente',
+            data_solicitacao: new Date().toISOString()
+        }]);
+        if(error){console.error(error);showToast('❌ Erro ao solicitar. Tente novamente.');return;}
+        showToast('✅ Solicitação registrada! Redirecionando para WhatsApp...');
+        const msg = `🟣 *NOVA SOLICITAÇÃO DE RECARGA - SYNAPSE* 🟣\n\n👤 *Terapeuta:* ${usuario.nome}\n📧 *E-mail:* ${usuario.email}\n📱 *Telefone:* ${usuario.telefone || 'Não informado'}\n\n📦 *Plano:* ${p.nome}\n💰 *Quantidade:* ${p.coins} Synapse Coins\n💵 *Valor:* R$ ${p.preco.toFixed(2)}\n📅 *Data:* ${new Date().toLocaleString('pt-BR')}\n\n✅ *Status:* Aguardando aprovação`;
+        const whatsappNumber = '5579996458399';
+        window.open(`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(msg)}`, '_blank');
+    } catch (err) {console.error(err);showToast('❌ Erro ao processar solicitação');}
+}
+
+// ✅ FUNÇÃO PARA LIMPAR O CHAT DO CLIENTE
+async function limparChatCliente(){
+    if(!usuario){showToast('❌ Faça login primeiro');return;}
+    if(!confirm('⚠️ Tem certeza que deseja apagar TODAS as mensagens do chat?')) return;
+    try {
+        await sb.from('mensagens').delete().eq('terapeuta_id', usuario.id);
+        await carregarM();
+        showToast('🗑️ Chat limpo com sucesso!');
+    } catch (err) {showToast('❌ Erro ao limpar o chat');}
+}
+
+async function carregarM(){if(!usuario)return;const{data}=await sb.from('mensagens').select('*').or(`terapeuta_id.eq.${usuario.id},is_admin.eq.true`).order('data',{ascending:true}).limit(50);mensagens=data||[];renderChat()}
+function renderChat(){const c=document.getElementById('chatMessages');if(!c)return;if(!mensagens.length){c.innerHTML='<p style="text-align:center;color:#6B6B7A;padding:40px">💬 Nenhuma mensagem. Envie uma mensagem para o suporte!</p>';return}c.innerHTML=mensagens.map(m=>`<div class="chat-message ${m.is_admin?'received':'sent'}"><strong>${m.is_admin?'📢 Suporte':'Você'}</strong><br>${m.mensagem}<div class="msg-time">${new Date(m.data).toLocaleString('pt-BR')}</div></div>`).join('');c.scrollTop=c.scrollHeight}
+async function enviarMsg(){const i=document.getElementById('chatInput');const m=i.value.trim();if(!m){showToast('Digite uma mensagem');return}if(!usuario)return;await sb.from('mensagens').insert([{terapeuta_id:usuario.id,terapeuta_nome:usuario.nome,mensagem:m,is_admin:false,lida:false}]);i.value='';await carregarM();showToast('✅ Mensagem enviada!')}
+document.getElementById('chatInput')?.addEventListener('keypress',e=>{if(e.key==='Enter')enviarMsg()});
+async function atualizarPerfil(){const tel=document.getElementById('perfilTelefone').value;const senha=document.getElementById('novaSenha').value;const d={telefone:tel};if(senha&&senha.length>=6)d.senha=senha;await sb.from('terapeutas').update(d).eq('id',usuario.id);if(senha){document.getElementById('novaSenha').value='';showToast('✅ Senha alterada!')}else{showToast('✅ Perfil atualizado!')}}
+function fecharM(id){document.getElementById(id).classList.remove('show')}
+function showToast(msg){const t=document.createElement('div');t.className='toast';t.textContent=msg;document.body.appendChild(t);setTimeout(()=>t.remove(),2000)}
+window.addEventListener('click',e=>{if(e.target.classList.contains('modal-overlay'))e.target.classList.remove('show')});
+
+async function abrirSala3D(){
+    if(!usuario){showToast('❌ Faça login primeiro!');return;}
+    
+    const sessaoId = localStorage.getItem('sessaoConstelacao_'+usuario.id);
+    const sessaoInicio = localStorage.getItem('sessaoInicio_'+usuario.id);
+    const sessaoFinalizada = localStorage.getItem('sessaoFinalizada_'+usuario.id);
+    
+    let sessaoAtivaValida = false;
+    if(sessaoId && sessaoInicio && !sessaoFinalizada) {
+        const tempoPassado = Date.now() - parseInt(sessaoInicio);
+        if(tempoPassado <= TIMEOUT_MS) {
+            sessaoAtivaValida = true;
+        } else {
+            localStorage.removeItem('sessaoConstelacao_'+usuario.id);
+            localStorage.removeItem('sessaoInicio_'+usuario.id);
+            localStorage.removeItem('salaEstado_'+usuario.id);
+        }
+    }
+    
+    if(sessaoAtivaValida) {
+        showToast('🔄 Retornando à sua constelação ativa!');
+    } else {
+        if((usuario.saldo || 0) < 1){
+            showToast('❌ Saldo insuficiente! Adquira Synapse Coins na aba Planos.');
+            return;
+        }
+        
+        if(!confirm(`⚠️ Esta ação iniciará uma NOVA CONSTELAÇÃO e consumirá 1 Synapse Coin.\n\n⏱️ Sessão válida por ${TIMEOUT_HORAS} horas\n💰 Seu saldo atual: ${usuario.saldo} coins\n✨ Constelações realizadas: ${usuario.constelacoes_realizadas || 0}\n\nContinuar?`)){
+            return;
+        }
+        
+        usuario.saldo -= 1;
+        atualizarSaldos();
+        await sb.from('terapeutas').update({ saldo: usuario.saldo }).eq('id', usuario.id);
+        
+        const novoSessaoId = Date.now().toString();
+        localStorage.setItem('sessaoConstelacao_'+usuario.id, novoSessaoId);
+        localStorage.setItem('sessaoInicio_'+usuario.id, Date.now().toString());
+        localStorage.removeItem('sessaoFinalizada_'+usuario.id);
+        localStorage.removeItem('salaEstado_'+usuario.id);
+        
+        showToast(`💰 -1 Synapse Coin | ⏱️ Sessão válida por ${TIMEOUT_HORAS} horas`);
+    }
+    
+    const estadoSalvo = localStorage.getItem('salaEstado_'+usuario.id);
+    const w = window.open('', 'sala3D', 'width='+screen.width+',height='+screen.height);
+    
+    // O RESTO DA SALA 3D É IGUAL AO SEU ORIGINAL, MANTIVE PARA NÃO QUEBRAR
+    w.document.write(`<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>SYNAPSE | Sala 3D</title><link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet"><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"><script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"><\/script><script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"><\/script><script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/renderers/CSS2DRenderer.js"><\/script><style>
+*{margin:0;padding:0;box-sizing:border-box;user-select:none}body{font-family:'Inter',sans-serif;background:#0a0a14;overflow:hidden;height:100vh;width:100vw}
+canvas{position:fixed;top:0;left:0;width:100vw;height:100vh;display:block;cursor:grab;z-index:1}canvas:active{cursor:grabbing}
+.gt{position:fixed;top:10px;left:50%;transform:translateX(-50%);display:flex;gap:6px;z-index:100}
+.gtb{background:rgba(10,10,20,0.88);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.1);border-radius:22px;padding:6px 14px;color:#ccc;cursor:pointer;font-size:0.68rem;font-family:inherit;display:flex;align-items:center;gap:5px;transition:0.2s;white-space:nowrap}
+.gtb:hover{background:#6B4E9E;color:#fff}.gtb.green{background:rgba(76,175,122,0.2);border-color:rgba(76,175,122,0.4)}.gtb.green:hover{background:#4CAF7A}.gtb.red{background:rgba(229,115,115,0.15)}.gtb.red:hover{background:#c46a5a}
+.gl{position:fixed;left:10px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:4px;z-index:100}
+.glb{width:38px;height:38px;border-radius:10px;background:rgba(10,10,20,0.88);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.1);color:#ccc;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:0.85rem;transition:0.2s;position:relative}
+.glb:hover{background:#6B4E9E;color:#fff}.glb.sel{background:#6B4E9E;color:#fff}.glb .tip{position:absolute;left:46px;background:#000;color:#fff;padding:3px 8px;border-radius:6px;font-size:0.5rem;white-space:nowrap;pointer-events:none;opacity:0;transition:0.2s}.glb:hover .tip{opacity:1}
+.gr{position:fixed;right:10px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:3px;z-index:100}
+.grg{background:rgba(10,10,20,0.88);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:5px 3px;display:flex;flex-direction:column;gap:2px}
+.grl{font-size:0.45rem;color:#666;text-transform:uppercase;letter-spacing:1px;text-align:center;padding:2px 0}
+.ge{font-size:1.1rem;cursor:pointer;padding:3px 5px;border-radius:6px;transition:0.2s;text-align:center;position:relative}.ge:hover{background:rgba(255,255,255,0.12);transform:scale(1.15)}.ge.sel{background:#6B4E9E}.ge .etip{position:absolute;right:38px;background:#000;color:#fff;padding:2px 7px;border-radius:5px;font-size:0.45rem;white-space:nowrap;pointer-events:none;opacity:0;transition:0.2s}.ge:hover .etip{opacity:1}
+.gb{position:fixed;bottom:0;left:0;right:0;z-index:100;background:rgba(10,10,20,0.94);backdrop-filter:blur(14px);border-top:1px solid rgba(255,255,255,0.08);padding:7px 14px;display:flex;align-items:center;gap:8px;justify-content:center;flex-wrap:wrap;min-height:50px}
+.gbg{display:flex;align-items:center;gap:3px}.gbs{width:1px;height:18px;background:rgba(255,255,255,0.08);margin:0 5px}.gbl{font-size:0.48rem;color:#777;text-transform:uppercase;letter-spacing:1px}
+.gbc{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);color:#ccc;padding:5px 9px;border-radius:12px;cursor:pointer;font-size:0.62rem;transition:0.2s;white-space:nowrap;font-family:inherit;display:flex;align-items:center;gap:2px}
+.gbc:hover{background:#6B4E9E;color:#fff}.gbc.sel{background:#6B4E9E;color:#fff}.gbc.gold{border-color:rgba(230,200,138,0.5);color:#e6c88a}.gbc.gold:hover{background:#e6c88a;color:#121212}.gbc.purple{background:rgba(107,78,158,0.12);border-color:rgba(107,78,158,0.25)}.gbc.purple:hover{background:#6B4E9E}.gbc.blue{background:rgba(91,141,239,0.08)}.gbc.blue:hover{background:#5B8DEF}
+.toast{position:fixed;bottom:65px;left:50%;transform:translateX(-50%);background:#6B4E9E;color:#fff;padding:5px 14px;border-radius:14px;font-size:0.6rem;z-index:300;pointer-events:none;animation:fIn 0.3s}@keyframes fIn{from{opacity:0;transform:translateX(-50%) translateY(5px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+.mod{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);z-index:200;align-items:center;justify-content:center}.mod.show{display:flex}
+.modbox{background:#1a1a2e;border:1px solid #3a3a4a;border-radius:14px;padding:18px;width:310px}.modbox h3{color:#e6c88a;font-size:0.8rem;margin-bottom:10px}.modbox input,.modbox select{width:100%;background:#0a0a14;border:1px solid #3a3a4a;border-radius:8px;padding:7px 10px;margin-bottom:7px;color:#fff;font-family:inherit;font-size:0.72rem}.modbtns{display:flex;gap:5px;margin-top:6px}.modbtns button{flex:1;padding:6px;border-radius:12px;border:none;cursor:pointer;font-weight:600;font-family:inherit;font-size:0.65rem}.btnp{background:#6B4E9E;color:#fff}.btnc{background:#3a3a4a;color:#fff}
+.fin{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.9);z-index:500;align-items:center;justify-content:center;flex-direction:column;gap:12px}.fin.show{display:flex}.fin i{font-size:3rem;color:#4CAF7A;animation:pop 0.5s}.fin h2{color:#fff;font-size:1.2rem}.fin p{color:#aaa;font-size:0.7rem}.fin .btns button{padding:10px 20px;border-radius:20px;border:none;cursor:pointer;font-weight:600;font-family:inherit;font-size:0.8rem;margin:0 5px}.btn-voltar{background:#6B4E9E;color:#fff}@keyframes pop{0%{transform:scale(0)}70%{transform:scale(1.2)}100%{transform:scale(1)}}
+<\/style></head><body><canvas id="c3d"></canvas>
+<div class="gt"><button class="gtb green" onclick="fin()"><i class="fas fa-check"></i> Finalizar</button><button class="gtb" onclick="clr()"><i class="fas fa-broom"></i> Limpar</button><button class="gtb" onclick="circ()"><i class="fas fa-circle"></i> Círculo</button><button class="gtb" onclick="shot()"><i class="fas fa-camera"></i> Foto</button><button class="gtb" id="lockBtn" onclick="tCam()"><i class="fas fa-lock"></i> Travar</button><button class="gtb red" onclick="window.close()"><i class="fas fa-times"></i> Sair</button></div>
+<div class="gl"><button class="glb sel" id="moveTool" onclick="setMode('move')"><i class="fas fa-arrows-alt"></i><span class="tip">Mover</span></button><button class="glb" onclick="rotS()"><i class="fas fa-sync-alt"></i><span class="tip">Girar</span></button><button class="glb" onclick="undo()"><i class="fas fa-undo"></i><span class="tip">Desfazer</span></button><button class="glb" onclick="swapS()"><i class="fas fa-venus-mars"></i><span class="tip">Sexo</span></button><button class="glb" onclick="delSel()"><i class="fas fa-trash-alt"></i><span class="tip">Remover</span></button></div>
+<div class="gr"><div class="grg"><span class="grl">Conexão</span><span class="ge" onclick="qConn('amor')">❤️<span class="etip">Amor</span></span><span class="ge" onclick="qConn('paz')">🕊️<span class="etip">Paz</span></span><span class="ge" onclick="qConn('conflito')">⚡<span class="etip">Conflito</span></span><span class="ge" onclick="qConn('apoio')">🤝<span class="etip">Apoio</span></span><span class="ge" onclick="qConn('ruptura')">💔<span class="etip">Ruptura</span></span><span class="ge" onclick="qConn('morte')">💀<span class="etip">Luto</span></span></div><div class="grg"><span class="grl">Emoção</span><span class="ge" onclick="aEmo('😢')">😢<span class="etip">Tristeza</span></span><span class="ge" onclick="aEmo('🌟')">🌟<span class="etip">Cura</span></span><span class="ge" onclick="aEmo('🔥')">🔥<span class="etip">Raiva</span></span><span class="ge" onclick="aEmo('🙏')">🙏<span class="etip">Gratidão</span></span></div></div>
+<div class="gb"><span class="gbc sel" data-g="masc">👨 M</span><span class="gbc" data-g="fem">👩 F</span><span class="gbc" data-g="neutro">🌀 N</span><span class="gbs"></span><span class="gbc gold" onclick="add('Eu','eu')">⭐ Eu</span><span class="gbc" onclick="add('Pai','pai')">Pai</span><span class="gbc" onclick="add('Mãe','mae')">Mãe</span><span class="gbc" onclick="add('Filho(a)','filho')">Filho(a)</span><span class="gbc" onclick="add('Irmão(ã)','irmao')">Irmão(ã)</span><span class="gbc" onclick="add('Avô(ó)','avo')">Avô(ó)</span><span class="gbc" onclick="add('Marido','marido')">Marido</span><span class="gbc" onclick="add('Esposa','esposa')">Esposa</span><span class="gbs"></span><span class="gbc purple" onclick="aPert('morto')">💀 Falecido</span><span class="gbc purple" onclick="aPert('excluido')">🚫 Excluído</span><span class="gbc blue" onclick="openMod()">+ Outro</span></div>
+<div class="mod" id="mod"><div class="modbox"><h3>Nova Pessoa</h3><input type="text" id="modName" placeholder="Nome"><select id="modPert"><option value="familia_origem">🏠 Família de Origem</option><option value="ancestrais">👴 Ancestrais</option><option value="familia_ampliada">👥 Família Ampliada</option><option value="afetivo">💕 Afetivo</option><option value="social" selected>🤝 Social</option><option value="morte">💀 Morte</option><option value="excluidos">🚫 Excluídos</option><option value="outro">❓ Outro</option></select><div class="modbtns"><button class="btnp" onclick="cMod()">Adicionar</button><button class="btnc" onclick="clMod()">Cancelar</button></div></div></div>
+<div class="fin" id="finOverlay"><i class="fas fa-check-circle"></i><h2>Constelação Finalizada!</h2><p id="finMsg"></p><button class="btn-voltar" onclick="window.close()"><i class="fas fa-arrow-left"></i> Voltar ao Painel</button></div>
+<script>
+const cv=document.getElementById('c3d');const r=new THREE.WebGLRenderer({canvas:cv,antialias:true,preserveDrawingBuffer:true});const s=new THREE.Scene();s.background=new THREE.Color(0x0e0e1a);const cam=new THREE.PerspectiveCamera(42,innerWidth/innerHeight,0.1,1000);cam.position.set(5.5,5.0,6.5);cam.lookAt(0,0.4,0);const lr=new THREE.CSS2DRenderer();lr.setSize(innerWidth,innerHeight);lr.domElement.style.cssText='position:fixed;top:0;left:0;pointer-events:none;z-index:50;';document.body.appendChild(lr.domElement);addEventListener('resize',()=>{cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix();r.setSize(innerWidth,innerHeight);lr.setSize(innerWidth,innerHeight)});r.setSize(innerWidth,innerHeight);const ctrl=new THREE.OrbitControls(cam,r.domElement);ctrl.enableDamping=true;ctrl.enablePan=false;ctrl.target.set(0,0.6,0);let cL=false,md='move';const FR=3.2,SCALE=0.75;
+const gnd=new THREE.Mesh(new THREE.CircleGeometry(FR+0.3,32),new THREE.MeshStandardMaterial({color:0x2a3a2a,roughness:0.5}));gnd.rotation.x=-Math.PI/2;gnd.position.y=-0.25;s.add(gnd);
+const rp=[];for(let i=0;i<=64;i++){const a=(i/64)*Math.PI*2;rp.push(new THREE.Vector3(Math.cos(a)*FR,0.02,Math.sin(a)*FR))}s.add(new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(rp),new THREE.LineBasicMaterial({color:0xe6c88a})));
+[1.2,2.0,2.7].forEach(rr=>{const ri=new THREE.Mesh(new THREE.TorusGeometry(rr,0.04,64,200),new THREE.MeshStandardMaterial({color:0xe6c88a,emissive:0x332211}));ri.rotation.x=Math.PI/2;ri.position.y=-0.15;s.add(ri)});
+s.add(new THREE.AmbientLight(0x4a5a4a,0.6));const lt=new THREE.DirectionalLight(0xfff2dc,1.2);lt.position.set(4,8,3);s.add(lt);s.add(new THREE.PointLight(0xe6c88a,0.3,10)).position.set(0,2,0);
+let ms=[],cs=[],hs=[];let ni=1,si=null,cg='masc',di=null,wd=false;let qt=null,qp=null;const cc={amor:0xff5555,paz:0xffffff,conflito:0xff9933,apoio:0x55cc55,gratidao:0xffd700,ruptura:0x888888,morte:0x666666};
+const uid=window.usuarioId;
+function salvarEstado(){if(!uid)return;const estado={membros:ms.filter(m=>m.role).map(m=>({nome:m.name,role:m.role,x:m.mesh.position.x,z:m.mesh.position.z,gender:m.mesh.userData.gender,emoji:m.mesh.children.find(c=>c.isEmoji)?.userData?.ch||null})),conexoes:cs.map(c=>({src:c.src,tgt:c.tgt,type:c.type}))};localStorage.setItem('salaEstado_'+uid,JSON.stringify(estado))}
+function restaurarEstado(estado){if(!estado||!estado.membros)return;estado.membros.forEach(m=>{const id=add(m.nome,m.role,m.x,m.z,m.gender);if(m.emoji&&id){const membro=ms.find(x=>x.id===id);if(membro){const cv2=document.createElement('canvas');cv2.width=64;cv2.height=64;const cx=cv2.getContext('2d');cx.font='40px serif';cx.textAlign='center';cx.textBaseline='middle';cx.fillText(m.emoji,32,32);const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(cv2),transparent:true,depthTest:false}));sp.position.set(0,1.05*SCALE,0);sp.scale.set(0.4,0.4,1);sp.isEmoji=true;sp.userData={ch:m.emoji};membro.mesh.add(sp)}}});if(estado.conexoes)estado.conexoes.forEach(c=>{con(c.src,c.tgt,c.type)});msg('🔄 Sala restaurada!')}
+function mkF(nm,rl,gd){const g=new THREE.Group();let bc=0x6B4E9E,sc=0xF5D0A9,h=false,hr=false,c=false,sf=false,gl=false,au=false,ac=0;if(rl==='eu'){bc=0xFFD700;sc=0xFFF0C0}else if(rl==='pai'){bc=0x1a3a5c;h=true}else if(rl==='mae'){bc=0x8B1A4A;hr=true}else if(rl==='filho'){bc=0x4A90D9}else if(rl==='filha'){bc=0xE890B0;hr=true}else if(rl==='irmao'){bc=0x2E7D32}else if(rl==='irma'){bc=0x66BB6A;hr=true}else if(rl==='avo'){bc=0x5D4037;h=true;c=true;gl=true}else if(rl==='avo-f'){bc=0xD4A5A5;hr=true;sf=true;gl=true}else if(rl==='marido'){bc=0x212121}else if(rl==='esposa'){bc=0xF5F5F5;hr=true}else if(rl==='morto'){bc=0xB0BEC5;sc=0xCFD8DC;au=true;ac=0xDDDDDD}else if(rl==='excluido'){bc=0x263238;sc=0x37474F;au=true;ac=0x111111}if(gd==='fem'&&!hr&&rl!=='morto'&&rl!=='excluido')hr=true;
+const to=new THREE.Mesh(new THREE.CylinderGeometry(0.28*SCALE,0.32*SCALE,0.58*SCALE,8),new THREE.MeshStandardMaterial({color:bc}));to.position.y=0.3*SCALE;g.add(to);const hd=new THREE.Mesh(new THREE.SphereGeometry(0.32*SCALE,32,32),new THREE.MeshStandardMaterial({color:sc}));hd.position.y=0.64*SCALE;g.add(hd);const em=new THREE.MeshStandardMaterial({color:0x2a1a12});const le=new THREE.Mesh(new THREE.SphereGeometry(0.058*SCALE,24),em);le.position.set(-0.11*SCALE,0.74*SCALE,0.33*SCALE);const re=new THREE.Mesh(new THREE.SphereGeometry(0.058*SCALE,24),em);re.position.set(0.11*SCALE,0.74*SCALE,0.33*SCALE);g.add(le,re);if(hr){const hh=new THREE.Mesh(new THREE.CylinderGeometry(0.39*SCALE,0.43*SCALE,0.14*SCALE,8),new THREE.MeshStandardMaterial({color:0x8B5A2B}));hh.position.y=0.81*SCALE;g.add(hh)}if(h){const ht=new THREE.Mesh(new THREE.CylinderGeometry(0.37*SCALE,0.41*SCALE,0.09*SCALE,8),new THREE.MeshStandardMaterial({color:0x6b4a2a}));ht.position.y=0.8*SCALE;g.add(ht)}if(c){const cc2=new THREE.Mesh(new THREE.CylinderGeometry(0.045*SCALE,0.045*SCALE,0.45*SCALE,4),new THREE.MeshStandardMaterial({color:0x8B5A2B}));cc2.position.set(-0.43*SCALE,0.22*SCALE,0.33*SCALE);cc2.rotation.z=0.3;g.add(cc2)}if(sf){const sf2=new THREE.Mesh(new THREE.BoxGeometry(0.25*SCALE,0.07*SCALE,0.14*SCALE),new THREE.MeshStandardMaterial({color:0xd46a4a}));sf2.position.set(0,0.43*SCALE,0.27*SCALE);g.add(sf2)}if(gl){const gg=new THREE.TorusGeometry(0.07,0.018,6,8);const gm=new THREE.MeshStandardMaterial({color:0x333333,roughness:0.2,metalness:0.5});const lg=new THREE.Mesh(gg,gm);lg.position.set(-0.06,0.64*SCALE,0.3*SCALE);const rg=new THREE.Mesh(gg,gm);rg.position.set(0.06,0.64*SCALE,0.3*SCALE);g.add(lg,rg)}if(au){const a=new THREE.Mesh(new THREE.SphereGeometry(0.5*SCALE,16,12),new THREE.MeshStandardMaterial({color:ac,roughness:0.2,transparent:true,opacity:0.35}));a.position.y=0.4*SCALE;g.add(a)}const am=new THREE.MeshStandardMaterial({color:bc});const la=new THREE.Mesh(new THREE.CylinderGeometry(0.075*SCALE,0.075*SCALE,0.46*SCALE,6),am);la.position.set(-0.42*SCALE,0.55*SCALE,0);la.rotation.z=0.25;const ra=new THREE.Mesh(new THREE.CylinderGeometry(0.075*SCALE,0.075*SCALE,0.46*SCALE,6),am);ra.position.set(0.42*SCALE,0.55*SCALE,0);ra.rotation.z=-0.25;g.add(la,ra);g.position.set((Math.random()-0.5)*5,-0.2,(Math.random()-0.5)*5);const div=document.createElement('div');div.style.cssText='background:#1a1a2e;color:#e6c88a;padding:3px 12px;border-radius:16px;font-size:11px;font-weight:700;border:1px solid #e6c88a';div.textContent=nm;const lb=new THREE.CSS2DObject(div);lb.position.set(0,1.45*SCALE,0);g.add(lb);g.userData={name:nm,role:rl,gender:gd};return{mesh:g,label:lb}}
+function cst(x,z){const rr=Math.hypot(x,z);if(rr>FR-0.15){const a=Math.atan2(z,x);return{x:Math.cos(a)*(FR-0.2),z:Math.sin(a)*(FR-0.2)}}return{x,z}}
+function svS(){hs.push({m:ms.map(m=>({id:m.id,name:m.name,role:m.role,x:m.mesh.position.x,z:m.mesh.position.z,gender:m.mesh.userData.gender,he:!!m.mesh.children.find(c=>c.isEmoji),ec:m.mesh.children.find(c=>c.isEmoji)?.userData?.ch||null})),c:cs.map(c=>({src:c.src,tgt:c.tgt,type:c.type})),nid:ni,sid:si});if(hs.length>40)hs.shift()}
+function add(nm,rl,x,z,gO){const g=gO||cg;const{mesh,label}=mkF(nm,rl,g);if(x!==undefined&&z!==undefined)mesh.position.set(x,-0.2,z);s.add(mesh);const id=ni++;mesh.userData.id=id;ms.push({id,name:nm,role:rl,mesh,label});hl();salvarEstado();msg('✅ '+nm);return id}
+function rm(id){const i=ms.findIndex(m=>m.id===id);if(i===-1)return;const m=ms[i];while(m.mesh.children.length>0)m.mesh.remove(m.mesh.children[0]);s.remove(m.mesh);ms.splice(i,1);cs=cs.filter(c=>c.src!==id&&c.tgt!==id);rbl();if(si===id)si=null;hl();salvarEstado();msg('🗑️ Removido')}
+function clr(sl){if(!sl&&!confirm('Limpar todos os membros?'))return;ms.forEach(m=>{while(m.mesh.children.length>0)m.mesh.remove(m.mesh.children[0]);s.remove(m.mesh)});ms=[];cs.forEach(c=>{if(c.line)s.remove(c.line)});cs=[];ni=1;si=null;qp=null;qt=null;hl();if(uid)localStorage.removeItem('salaEstado_'+uid);if(!sl)msg('🧹 Tudo limpo!')}
+function rbl(){cs.forEach(c=>{if(c.line)s.remove(c.line)});const nc=[];cs.forEach(c=>{const sr=ms.find(m=>m.id===c.src),tr=ms.find(m=>m.id===c.tgt);if(sr&&tr){const pts=[new THREE.Vector3(sr.mesh.position.x,0.28,sr.mesh.position.z),new THREE.Vector3(tr.mesh.position.x,0.28,tr.mesh.position.z)];const line=new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts),new THREE.LineBasicMaterial({color:cc[c.type]||0xe6c88a}));s.add(line);nc.push({...c,line})}});cs=nc}
+function con(sr,tr,tp){if(sr===tr)return;const ex=cs.findIndex(c=>(c.src===sr&&c.tgt===tr)||(c.src===tr&&c.tgt===sr));if(ex>=0){const c=cs[ex];if(c.line)s.remove(c.line);cs.splice(ex,1);rbl();salvarEstado();msg('🔓 Desconectado');return}cs.push({src:sr,tgt:tr,type:tp,line:null});rbl();salvarEstado();msg('🔗 Conectado')}
+function circ(){if(!ms.length)return;ms.forEach((m,i)=>{const a=(i/ms.length)*Math.PI*2;m.mesh.position.set(Math.cos(a)*2.2,-0.2,Math.sin(a)*2.2)});rbl();salvarEstado();msg('🔵 Círculo')}
+function hl(){ms.forEach(m=>{const old=m.mesh.children.find(c=>c.isGlow);if(old)m.mesh.remove(old);if(si===m.id){const r=new THREE.Mesh(new THREE.SphereGeometry(0.5*SCALE,16),new THREE.MeshBasicMaterial({color:0xe6c88a,transparent:true,opacity:0.35}));r.isGlow=true;r.position.set(0,0.58*SCALE,0);m.mesh.add(r)}})}
+function qConn(tp){qt=tp;qp=null;document.querySelectorAll('.ge').forEach(e=>e.classList.remove('sel'));msg('🔗 '+tp+': clique em 2 bonecos')}
+function aEmo(ch){if(!si){msg('Selecione um boneco');return}const m=ms.find(m=>m.id===si);if(!m)return;const old=m.mesh.children.find(c=>c.isEmoji);if(old)m.mesh.remove(old);const cv2=document.createElement('canvas');cv2.width=64;cv2.height=64;const cx=cv2.getContext('2d');cx.font='40px serif';cx.textAlign='center';cx.textBaseline='middle';cx.fillText(ch,32,32);const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(cv2),transparent:true,depthTest:false}));sp.position.set(0,1.05*SCALE,0);sp.scale.set(0.4,0.4,1);sp.isEmoji=true;sp.userData={ch};m.mesh.add(sp);salvarEstado();msg(ch+' → '+m.name)}
+function aPert(tp){if(!si){msg('Selecione um boneco');return}const m=ms.find(m=>m.id===si);if(!m)return;const pos=m.mesh.position.clone(),rot=m.mesh.rotation.clone();const{name,gender}=m.mesh.userData;const ocs=cs.filter(c=>c.src===si||c.tgt===si).map(c=>({...c}));while(m.mesh.children.length>0)m.mesh.remove(m.mesh.children[0]);s.remove(m.mesh);ms=ms.filter(x=>x.id!==si);cs=cs.filter(c=>c.src!==si&&c.tgt!==si);const{mesh,label}=mkF(name,tp,gender);mesh.position.copy(pos);mesh.rotation.copy(rot);s.add(mesh);mesh.userData.id=si;ms.push({id:si,name,role:tp,mesh,label});ocs.forEach(c=>{const ns=c.src===si?si:c.src;const nt=c.tgt===si?si:c.tgt;if(ns!==nt)cs.push({src:ns,tgt:nt,type:c.type,line:null})});rbl();hl();salvarEstado();msg((tp==='morto'?'💀 Falecido':'🚫 Excluído')+': '+name)}
+function swapS(){if(!si){msg('Selecione um boneco');return}const m=ms.find(m=>m.id===si);if(!m)return;const ng=m.mesh.userData.gender==='masc'?'fem':m.mesh.userData.gender==='fem'?'neutro':'masc';const pos=m.mesh.position.clone(),rot=m.mesh.rotation.clone();const{name,role}=m.mesh.userData;const ocs=cs.filter(c=>c.src===si||c.tgt===si).map(c=>({...c}));while(m.mesh.children.length>0)m.mesh.remove(m.mesh.children[0]);s.remove(m.mesh);ms=ms.filter(x=>x.id!==si);cs=cs.filter(c=>c.src!==si&&c.tgt!==si);const{mesh,label}=mkF(name,role,ng);mesh.position.copy(pos);mesh.rotation.copy(rot);s.add(mesh);mesh.userData.id=si;ms.push({id:si,name,role,mesh,label});ocs.forEach(c=>{const ns=c.src===si?si:c.src;const nt=c.tgt===si?si:c.tgt;if(ns!==nt)cs.push({src:ns,tgt:nt,type:c.type,line:null})});rbl();hl();salvarEstado();msg('⚧️ Sexo alterado')}
+function undo(){if(!hs.length){msg('Nada para desfazer');return}const last=hs.pop();ms.forEach(m=>{while(m.mesh.children.length>0)m.mesh.remove(m.mesh.children[0]);s.remove(m.mesh)});cs.forEach(c=>{if(c.line)s.remove(c.line)});ms=[];cs=[];last.m.forEach(d=>{const{mesh,label}=mkF(d.name,d.role,d.gender);mesh.position.set(d.x,-0.2,d.z);mesh.userData.id=d.id;s.add(mesh);ms.push({id:d.id,name:d.name,role:d.role,mesh,label});if(d.he&&d.ec){const cv2=document.createElement('canvas');cv2.width=64;cv2.height=64;const cx=cv2.getContext('2d');cx.font='40px serif';cx.textAlign='center';cx.textBaseline='middle';cx.fillText(d.ec,32,32);const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(cv2),transparent:true,depthTest:false}));sp.position.set(0,1.05*SCALE,0);sp.scale.set(0.4,0.4,1);sp.isEmoji=true;sp.userData={ch:d.ec};mesh.add(sp)}});ni=last.nid;si=last.sid;last.c.forEach(c=>cs.push({...c,line:null}));rbl();hl();salvarEstado();msg('↩️ Desfeito')}
+function delSel(){if(si)rm(si);else msg('Selecione um boneco')}
+function rotS(){if(!si){msg('Selecione um boneco');return}const m=ms.find(m=>m.id===si);if(m){m.mesh.rotation.y+=Math.PI/4;salvarEstado();msg('🔄 Rotacionado')}}
+function shot(){r.render(s,cam);const a=document.createElement('a');a.download='constelacao_'+Date.now()+'.png';a.href=r.domElement.toDataURL();a.click();msg('📸 Foto salva!')}
+function tCam(){cL=!cL;ctrl.enabled=!cL;document.getElementById('lockBtn').innerHTML=cL?'<i class="fas fa-unlock-alt"></i> Destravar':'<i class="fas fa-lock"></i> Travar'}
+function setMode(m){md=m;document.getElementById('moveTool').classList.toggle('sel',m==='move')}
+function finalizarConstelacao(){
+    if(window.opener && window.opener.usuario){
+        window.opener.usuario.constelacoes_realizadas = (window.opener.usuario.constelacoes_realizadas || 0) + 1;
+        window.opener.document.getElementById('statConstelacoes').textContent = window.opener.usuario.constelacoes_realizadas;
+        if(window.opener.atualizarProgresso) window.opener.atualizarProgresso();
+        window.opener.localStorage.setItem('sessaoFinalizada_'+window.opener.usuario.id, 'true');
+        window.opener.showToast('✨ Constelação finalizada! +1 constelação realizada.');
+    }
+    if(uid){
+        localStorage.removeItem('sessaoConstelacao_'+uid);
+        localStorage.removeItem('sessaoInicio_'+uid);
+        localStorage.removeItem('salaEstado_'+uid);
+    }
+    window.close();
+}
+function fin(){
+    if(!ms.length){msg('Adicione pelo menos um membro');return}
+    document.getElementById('finMsg').innerHTML=ms.length+' membros · '+cs.length+' conexões';
+    document.getElementById('finOverlay').classList.add('show');
+}
+function openMod(){document.getElementById('mod').classList.add('show');document.getElementById('modName').value=''}
+function clMod(){document.getElementById('mod').classList.remove('show')}
+function cMod(){const n=document.getElementById('modName').value.trim();if(!n){msg('Digite um nome');return}add(n,'custom',undefined,undefined,cg);clMod()}
+function msg(t){const ex=document.querySelector('.toast');if(ex)ex.remove();const d=document.createElement('div');d.className='toast';d.textContent=t;document.body.appendChild(d);setTimeout(()=>d.remove(),1600)}
+const ray=new THREE.Raycaster();const mouse=new THREE.Vector2();
+function gm(e){const rc=r.domElement.getBoundingClientRect();return{x:((e.clientX-rc.left)/rc.width)*2-1,y:-((e.clientY-rc.top)/rc.height)*2+1}}
+function sD(e){if(md!=='move')return;const m=gm(e);mouse.set(m.x,m.y);ray.setFromCamera(mouse,cam);const hits=ray.intersectObjects(ms.map(m=>m.mesh),true);if(hits.length){let h=hits[0].object;while(h&&!ms.find(m=>m.mesh===h))h=h.parent;const f=ms.find(m=>m.mesh===h);if(f){di=f.id;wd=false;cv.style.cursor='grabbing'}}}
+function mD(e){if(di===null)return;wd=true;const m=gm(e);mouse.set(m.x,m.y);ray.setFromCamera(mouse,cam);const plane=new THREE.Plane(new THREE.Vector3(0,1,0),-0.2);const pt=new THREE.Vector3();if(ray.ray.intersectPlane(plane,pt)){const mem=ms.find(m=>m.id===di);if(mem){const c=cst(pt.x,pt.z);mem.mesh.position.set(c.x,-0.2,c.z);rbl();salvarEstado()}}}
+function eD(){if(di!==null&&wd)svS();di=null;wd=false;cv.style.cursor='grab'}
+function cC(e){if(wd||di!==null||md!=='move')return;const m=gm(e);mouse.set(m.x,m.y);ray.setFromCamera(mouse,cam);const hits=ray.intersectObjects(ms.map(m=>m.mesh),true);if(hits.length){let h=hits[0].object;while(h&&!ms.find(m=>m.mesh===h))h=h.parent;const f=ms.find(m=>m.mesh===h);if(f){if(qt){if(!qp){qp=f.id;msg('🔗 Origem: '+f.name)}else if(qp!==f.id){con(qp,f.id,qt);qp=null;qt=null}}return si=f.id;hl()}}else{if(!qt){si=null;hl()}}}
+cv.addEventListener('mousedown',sD);addEventListener('mousemove',mD);addEventListener('mouseup',eD);cv.addEventListener('click',cC);cv.addEventListener('touchstart',e=>{e.preventDefault();sD(e.touches[0])},{passive:false});addEventListener('touchmove',e=>{if(di!==null){e.preventDefault();mD(e.touches[0])}},{passive:false});addEventListener('touchend',eD);addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key==='z'){e.preventDefault();undo()}});document.getElementById('mod').addEventListener('click',e=>{if(e.target===e.currentTarget)clMod()});document.querySelectorAll('[data-g]').forEach(el=>el.onclick=function(){document.querySelectorAll('[data-g]').forEach(x=>x.classList.remove('sel'));this.classList.add('sel');cg=this.dataset.g});
+let time=0;function anim(){requestAnimationFrame(anim);time+=0.016;ctrl.update();ms.forEach((m,i)=>{m.mesh.position.y=-0.2+Math.sin(time*1.5+i)*0.004});r.render(s,cam);lr.render(s,cam)}anim();
+if(window.estadoInicial&&window.estadoInicial.membros&&window.estadoInicial.membros.length){setTimeout(()=>restaurarEstado(window.estadoInicial),800)}
+<\/script><\/body></html>`);
+    
+    w.estadoInicial = estadoSalvo ? JSON.parse(estadoSalvo) : null;
+    w.usuarioId = usuario.id;
+    w.document.close();
+}
+
+// Funções globais
+window.limparChatCliente = limparChatCliente;
+window.enviarMsg = enviarMsg;
+window.solicitarPlano = solicitarPlano;
+window.verificarSessaoAtiva = verificarSessaoAtiva;
+window.abrirSala3D = abrirSala3D;
+</script>
+</body>
+</html>
