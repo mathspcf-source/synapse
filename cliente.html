@@ -19,7 +19,7 @@
         .login-card h1{font-size:1.5rem;font-weight:700;color:var(--text)}.login-card .subtitle{color:var(--text-secondary);margin:6px 0 24px 0;font-size:0.8rem}
         .login-card input{width:100%;background:var(--bg);border:2px solid var(--border);border-radius:50px;padding:12px 18px;margin-bottom:12px;font-size:0.85rem;outline:none}.login-card input:focus{border-color:var(--primary)}
         .login-card button{width:100%;background:var(--primary);color:white;border:none;border-radius:50px;padding:12px;font-weight:600;font-size:0.9rem;cursor:pointer;margin-top:4px}.login-card button:hover{background:#5a3d8a}
-        .login-footer{margin-top:18px;padding-top:14px;border-top:1px solid var(--border);font-size:0.65rem;color:var(--text-secondary);line-height:1.7}.login-footer strong{color:var(--text)}.login-footer .whatsapp{color:#25D366;font-weight:600}
+        .login-footer{margin-top:18px;padding-top:14px;border-top:1px solid var(--border);font-size:0.65rem;color:var(--text-secondary);line-height:1.7}.login-footer .whatsapp{color:#25D366;font-weight:600}
         .error-msg{color:var(--danger);font-size:0.7rem;margin-top:12px;display:none}.error-msg.show{display:block}
         .spinner{display:none;margin:10px auto;width:24px;height:24px;border:3px solid var(--border);border-top-color:var(--primary);border-radius:50%;animation:spin 0.8s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}
         .top-nav{background:var(--primary-dark);padding:10px 24px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;box-shadow:0 4px 20px rgba(0,0,0,0.15);position:sticky;top:0;z-index:100}
@@ -49,6 +49,7 @@
         .timer-badge{display:inline-block;background:rgba(76,175,122,0.2);border:1px solid rgba(76,175,122,0.4);color:#4CAF7A;padding:5px 14px;border-radius:15px;font-size:0.68rem;font-weight:600}
         .timer-badge-expiring{background:rgba(255,152,0,0.2);border-color:#FF9800;color:#FF9800}
         .timer-badge-expired{background:rgba(229,115,115,0.2);border-color:#E57373;color:#E57373}
+        @keyframes slideInRight{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
         @media(max-width:1100px){.stats-mini{grid-template-columns:repeat(2,1fr)}.two-columns,.pacotes-grid{grid-template-columns:1fr}}
     </style>
 </head>
@@ -64,7 +65,7 @@
         <div class="spinner" id="loginSpinner"></div>
         <button id="btnLogin"><i class="fas fa-sign-in-alt"></i> Entrar</button>
         <div id="loginError" class="error-msg"></div>
-        <div class="login-footer"><strong>Matheus Pacifico Evangelista</strong> © 2026<br>Todos os direitos reservados<br><i class="fab fa-whatsapp"></i> <span class="whatsapp">(79) 99645-8399</span></div>
+        <div class="login-footer">© 2026 · Todos os direitos reservados<br><i class="fab fa-whatsapp"></i> <span class="whatsapp">(79) 99645-8399</span></div>
     </div>
 </div>
 
@@ -136,7 +137,7 @@
             </div>
         </div>
         
-        <div id="panelPerfil" class="panel"><div class="card"><h3><i class="fas fa-user-cog"></i> Meus Dados</h3><div class="form-group"><label>Nome</label><input type="text" id="perfilNome" disabled></div><div class="form-group"><label>E-mail</label><input type="email" id="perfilEmail" disabled></div><div class="form-group"><label>Telefone</label><input type="text" id="perfilTelefone"></div><div class="form-group"><label>Nova Senha</label><input type="password" id="novaSenha" placeholder="Deixe em branco para manter"></div><button class="btn-primary" onclick="atualizarPerfil()"><i class="fas fa-save"></i> Atualizar Perfil</button></div><div class="card"><h3><i class="fas fa-info-circle"></i> Informações</h3><p><strong>Matheus Pacifico Evangelista</strong> © 2026 · v3.2<br><i class="fab fa-whatsapp"></i> (79) 99645-8399<br><i class="fas fa-envelope"></i> contato@synapse.com</p></div></div>
+        <div id="panelPerfil" class="panel"><div class="card"><h3><i class="fas fa-user-cog"></i> Meus Dados</h3><div class="form-group"><label>Nome</label><input type="text" id="perfilNome" disabled></div><div class="form-group"><label>E-mail</label><input type="email" id="perfilEmail" disabled></div><div class="form-group"><label>Telefone</label><input type="text" id="perfilTelefone"></div><div class="form-group"><label>Nova Senha</label><input type="password" id="novaSenha" placeholder="Deixe em branco para manter"></div><button class="btn-primary" onclick="atualizarPerfil()"><i class="fas fa-save"></i> Atualizar Perfil</button></div><div class="card"><h3><i class="fas fa-info-circle"></i> Informações</h3><p>© 2026 · v5.0<br><i class="fab fa-whatsapp"></i> (79) 99645-8399</p></div></div>
     </div>
 </div>
 
@@ -149,13 +150,42 @@
 const SB_URL='https://wedhebcoxljyeoxhgaob.supabase.co';
 const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndlZGhlYmNveGxqeWVveGhnYW9iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY4OTgwNDgsImV4cCI6MjA5MjQ3NDA0OH0._Xnqxp6YSazOK37xP5qSi5gOuThvqGm5Kw_xmWZU8XQ';
 const sb=supabase.createClient(SB_URL,SB_KEY);
-let usuario=null,clientes=[],agendamentos=[],prontuarios=[],planos=[],mensagens=[];
+let usuario=null,clientes=[],agendamentos=[],prontuarios=[],planos=[];
 let sessaoTimerInterval = null;
-let chatRealtimeChannel = null; // NOVO: canal Realtime do chat
+let chatRealtimeChannel = null;
 
-// ⏰ CONFIGURAÇÃO DO TIMEOUT (2 HORAS)
 const TIMEOUT_HORAS = 2;
 const TIMEOUT_MS = TIMEOUT_HORAS * 60 * 60 * 1000;
+
+function escapeHtmlCliente(str) {
+    if (!str) return '';
+    return str.replace(/[&<>]/g, function(m) {
+        if (m === '&') return '&amp;';
+        if (m === '<') return '&lt;';
+        if (m === '>') return '&gt;';
+        return m;
+    });
+}
+
+function mostrarNotificacaoCliente(msg) {
+    const notif = document.getElementById('notifCliente');
+    if (notif) notif.remove();
+    const div = document.createElement('div');
+    div.id = 'notifCliente';
+    div.style.cssText = 'position:fixed;top:20px;right:20px;background:#6B4E9E;color:white;padding:12px 20px;border-radius:12px;z-index:9999;box-shadow:0 4px 12px rgba(0,0,0,0.15);animation:slideInRight 0.3s ease;cursor:pointer';
+    div.innerHTML = `<i class="fas fa-headset"></i> ${msg}`;
+    div.onclick = () => div.remove();
+    document.body.appendChild(div);
+    setTimeout(() => div.remove(), 4000);
+}
+
+function mostrarToastCliente(msg) {
+    const t = document.createElement('div');
+    t.className = 'toast';
+    t.textContent = msg;
+    document.body.appendChild(t);
+    setTimeout(() => t.remove(), 2000);
+}
 
 document.getElementById('btnLogin').onclick=login;
 document.getElementById('loginPassword').addEventListener('keypress',e=>{if(e.key==='Enter')login()});
@@ -168,11 +198,7 @@ document.getElementById('btnLogout').onclick=()=>{
         localStorage.removeItem('sessaoFinalizada_'+uid);
     }
     if(sessaoTimerInterval) clearInterval(sessaoTimerInterval);
-    // Fechar canal Realtime ao sair
-    if(chatRealtimeChannel){
-        sb.removeChannel(chatRealtimeChannel);
-        chatRealtimeChannel = null;
-    }
+    if(chatRealtimeChannel) sb.removeChannel(chatRealtimeChannel);
     usuario=null;
     document.getElementById('dashboard').style.display='none';
     document.getElementById('loginContainer').style.display='flex';
@@ -205,12 +231,11 @@ async function login(){
     document.getElementById('welcomeNome').textContent='Bem-vindo(a), '+(usuario.nome?.split(' ')[0]||'Terapeuta');
     document.getElementById('statConstelacoes').textContent=usuario.constelacoes_realizadas||0;
     await carregarTudo();
-    setInterval(verificarNotificacoes,8000);
+    setInterval(verificarNotificacoesCliente,5000);
     verificarSessaoAtiva();
     iniciarTimerSessao();
-    // Iniciar Realtime chat após login
     iniciarRealtimeChatCliente();
-    showToast('✅ Bem-vindo(a) ao SYNAPSE!');
+    mostrarToastCliente('✅ Bem-vindo(a) ao SYNAPSE!');
 }
 
 function iniciarTimerSessao() {
@@ -267,47 +292,52 @@ function verificarSessaoAtiva(){
     }
 }
 
-async function verificarNotificacoes(){if(!usuario)return;const{data}=await sb.from('mensagens').select('*').eq('is_admin',true).eq('lida',false);document.getElementById('chatNotif').style.display=data&&data.length>0?'block':'none'}
-async function marcarLidas(){if(!usuario)return;await sb.from('mensagens').update({lida:true}).eq('terapeuta_id',usuario.id).eq('is_admin',true).eq('lida',false);document.getElementById('chatNotif').style.display='none';await carregarHistoricoChatCliente()}
-async function carregarTudo(){await Promise.all([carregarClientes(),carregarAgendamentos(),carregarProntuarios(),carregarPlanos(),carregarHistoricoChatCliente()]);atualizarStats();atualizarProgresso();atualizarHora()}
+async function verificarNotificacoesCliente(){if(!usuario)return;const{data}=await sb.from('mensagens').select('*').eq('is_admin',true).eq('lida',false);document.getElementById('chatNotif').style.display=data&&data.length>0?'block':'none'}
+async function marcarLidasCliente(){if(!usuario)return;await sb.from('mensagens').update({lida:true}).eq('terapeuta_id',usuario.id).eq('is_admin',true).eq('lida',false);document.getElementById('chatNotif').style.display='none';await carregarHistoricoCliente()}
+async function carregarTudo(){await Promise.all([carregarClientes(),carregarAgendamentos(),carregarProntuarios(),carregarPlanos(),carregarHistoricoCliente()]);atualizarStats();atualizarProgresso();atualizarHora()}
 function atualizarProgresso(){if(!usuario)return;const total = (usuario.constelacoes_realizadas||0) + (usuario.saldo||0);const percent = total > 0 ? ((usuario.constelacoes_realizadas||0)/total*100).toFixed(0) : 0;document.getElementById('usoPercent').textContent=percent+'%';const pf=document.querySelector('.progress-fill');if(pf)pf.style.width=percent+'%'}
 function atualizarStats(){document.getElementById('statClientesCount').textContent=clientes.length;document.getElementById('statAgendamentosCount').textContent=agendamentos.filter(a=>a.status!=='cancelado').length;document.getElementById('statProntuariosCount').textContent=prontuarios.length;atualizarSaldos();document.getElementById('statConstelacoes').textContent=usuario?.constelacoes_realizadas||0;atualizarProgresso()}
 function atualizarHora(){const a=new Date();document.getElementById('pageDesc').innerHTML=`<i class="far fa-calendar-alt"></i> ${a.toLocaleDateString('pt-BR',{weekday:'long',year:'numeric',month:'long',day:'numeric'})} · <i class="far fa-clock"></i> ${a.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}`}
 setInterval(atualizarHora,1000);
 document.querySelectorAll('.nav-btn[data-panel]').forEach(b=>b.addEventListener('click',()=>nav(b.dataset.panel)));
-async function nav(p){document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));const m={inicio:'panelInicio',clientes:'panelClientes',agendamento:'panelAgendamento',prontuarios:'panelProntuarios',sala:'panelSala',planos:'panelPlanos',chat:'panelChat',perfil:'panelPerfil'};document.getElementById(m[p]).classList.add('active');document.querySelectorAll('.nav-btn[data-panel]').forEach(b=>b.classList.remove('active'));document.querySelector(`.nav-btn[data-panel="${p}"]`).classList.add('active');document.getElementById('pageTitle').textContent={inicio:'Início',clientes:'Clientes',agendamento:'Agenda',prontuarios:'Prontuários',sala:'Sala 3D',planos:'Planos',chat:'Chat',perfil:'Perfil'}[p];if(p==='chat')await marcarLidas();if(p==='sala')verificarSessaoAtiva()}
+async function nav(p){document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));const m={inicio:'panelInicio',clientes:'panelClientes',agendamento:'panelAgendamento',prontuarios:'panelProntuarios',sala:'panelSala',planos:'panelPlanos',chat:'panelChat',perfil:'panelPerfil'};document.getElementById(m[p]).classList.add('active');document.querySelectorAll('.nav-btn[data-panel]').forEach(b=>b.classList.remove('active'));document.querySelector(`.nav-btn[data-panel="${p}"]`).classList.add('active');document.getElementById('pageTitle').textContent={inicio:'Início',clientes:'Clientes',agendamento:'Agenda',prontuarios:'Prontuários',sala:'Sala 3D',planos:'Planos',chat:'Chat',perfil:'Perfil'}[p];if(p==='chat')await marcarLidasCliente();if(p==='sala')verificarSessaoAtiva()}
 
 async function carregarClientes(){if(!usuario)return;const{data}=await sb.from('clientes').select('*').eq('terapeuta_id',usuario.id).order('nome');clientes=data||[];renderClientes();popularSelectClientes()}
-function renderClientes(){const tbody=document.getElementById('clientesTbody');if(!tbody)return;if(!clientes.length){tbody.innerHTML='<tr><td colspan="5" style="text-align:center;color:#6B6B7A;padding:20px">📭 Nenhum cliente cadastrado</td></tr>';return}tbody.innerHTML=clientes.map(c=>`<tr><td><strong>${c.nome}</strong></td><td>${c.telefone||'-'}</td><td>${c.email||'-'}</td><td>✨ ${c.constelacoes||0}</td><td><button class="btn-icon" onclick="verProntuario('${c.nome}')"><i class="fas fa-clipboard-list"></i></button><button class="btn-icon" onclick="editarCliente('${c.id}')"><i class="fas fa-edit"></i></button><button class="btn-icon danger" onclick="removerCliente('${c.id}')"><i class="fas fa-trash-alt"></i></button></td></tr>`).join('');atualizarStats()}
+function renderClientes(){const tbody=document.getElementById('clientesTbody');if(!tbody)return;if(!clientes.length){tbody.innerHTML='<tr><td colspan="5" style="text-align:center;color:#6B6B7A;padding:20px">📭 Nenhum cliente cadastrado</td><td>';return}tbody.innerHTML=clientes.map(c=>`<tr>
+            <td><strong>${escapeHtmlCliente(c.nome)}</strong></td>
+            <td>${escapeHtmlCliente(c.telefone||'-')}</td>
+            <td>${escapeHtmlCliente(c.email||'-')}</td>
+            <td>✨ ${c.constelacoes||0}</td>
+            <td><button class="btn-icon" onclick="verProntuario('${c.nome}')"><i class="fas fa-clipboard-list"></i></button><button class="btn-icon" onclick="editarCliente('${c.id}')"><i class="fas fa-edit"></i></button><button class="btn-icon danger" onclick="removerCliente('${c.id}')"><i class="fas fa-trash-alt"></i></button></td>
+        </tr>`).join('');atualizarStats()}
 function abrirModalCliente(){document.getElementById('modalClienteTitle').innerHTML='<i class="fas fa-user-plus"></i> Novo Cliente';document.getElementById('editClienteId').value='';document.getElementById('clienteNome').value='';document.getElementById('clienteTelefone').value='';document.getElementById('clienteEmail').value='';document.getElementById('modalCliente').classList.add('show')}
 async function editarCliente(id){const c=clientes.find(c=>c.id==id);if(!c)return;document.getElementById('modalClienteTitle').innerHTML='<i class="fas fa-edit"></i> Editar Cliente';document.getElementById('editClienteId').value=c.id;document.getElementById('clienteNome').value=c.nome;document.getElementById('clienteTelefone').value=c.telefone||'';document.getElementById('clienteEmail').value=c.email||'';document.getElementById('modalCliente').classList.add('show')}
-async function salvarCliente(){const id=document.getElementById('editClienteId').value;const d={nome:document.getElementById('clienteNome').value,telefone:document.getElementById('clienteTelefone').value,email:document.getElementById('clienteEmail').value,terapeuta_id:usuario.id};if(id){await sb.from('clientes').update(d).eq('id',id);showToast('✅ Cliente atualizado!')}else{await sb.from('clientes').insert([d]);showToast('✅ Cliente adicionado!')}fecharM('modalCliente');await carregarClientes()}
-async function removerCliente(id){if(!confirm('Remover este cliente?'))return;await sb.from('clientes').delete().eq('id',id);await carregarClientes();showToast('🗑️ Cliente removido!')}
-function popularSelectClientes(){const s1=document.getElementById('agendamentoCliente');const s2=document.getElementById('prontuarioClienteSelect');const opts=clientes.map(c=>`<option value="${c.nome}">${c.nome}</option>`).join('');if(s1)s1.innerHTML='<option value="">Selecione</option>'+opts;if(s2)s2.innerHTML='<option value="">Selecione</option>'+opts}
+async function salvarCliente(){const id=document.getElementById('editClienteId').value;const d={nome:document.getElementById('clienteNome').value,telefone:document.getElementById('clienteTelefone').value,email:document.getElementById('clienteEmail').value,terapeuta_id:usuario.id};if(id){await sb.from('clientes').update(d).eq('id',id);mostrarToastCliente('✅ Cliente atualizado!')}else{await sb.from('clientes').insert([d]);mostrarToastCliente('✅ Cliente adicionado!')}fecharM('modalCliente');await carregarClientes()}
+async function removerCliente(id){if(!confirm('Remover este cliente?'))return;await sb.from('clientes').delete().eq('id',id);await carregarClientes();mostrarToastCliente('🗑️ Cliente removido!')}
+function popularSelectClientes(){const s1=document.getElementById('agendamentoCliente');const s2=document.getElementById('prontuarioClienteSelect');const opts=clientes.map(c=>`<option value="${escapeHtmlCliente(c.nome)}">${escapeHtmlCliente(c.nome)}</option>`).join('');if(s1)s1.innerHTML='<option value="">Selecione</option>'+opts;if(s2)s2.innerHTML='<option value="">Selecione</option>'+opts}
 
 async function carregarAgendamentos(){if(!usuario)return;const{data}=await sb.from('agendamentos').select('*').eq('terapeuta_id',usuario.id).order('data',{ascending:true});agendamentos=data||[];renderAgendamentos()}
-function renderAgendamentos(){const c=document.getElementById('agendamentosList');if(!c)return;const ativos=agendamentos.filter(a=>a.status!=='cancelado');if(!ativos.length){c.innerHTML='<p style="text-align:center;color:#6B6B7A;padding:20px">📅 Nenhum agendamento</p>';return}c.innerHTML=ativos.map(a=>{const sc=a.status==='confirmado'?'status-confirmado':'status-pendente';return`<div class="prontuario-card" style="border-left-color:${a.status==='confirmado'?'#4CAF7A':'#FF9800'}"><div class="prontuario-header"><span class="prontuario-cliente">${a.cliente_nome}</span><span class="status-badge ${sc}">${a.status==='confirmado'?'Confirmado':'Pendente'}</span></div><div class="prontuario-data">📅 ${new Date(a.data+'T00:00').toLocaleDateString('pt-BR')} · ⏰ ${a.hora} · ${a.tipo}</div><div style="display:flex;gap:6px;margin-top:6px">${a.status==='pendente'?`<button class="btn-outline btn-sm" onclick="confirmarAgendamento('${a.id}')" style="color:#4CAF7A;border-color:#4CAF7A"><i class="fas fa-check"></i> Confirmar</button>`:''}<button class="btn-outline btn-sm" onclick="remarcarAgendamento('${a.id}')"><i class="fas fa-calendar-alt"></i> Remarcar</button><button class="btn-outline btn-sm" onclick="cancelarAgendamento('${a.id}')" style="color:#E57373;border-color:#E57373"><i class="fas fa-times"></i> Cancelar</button></div></div>`}).join('');atualizarStats();renderProximos()}
-async function confirmarAgendamento(id){await sb.from('agendamentos').update({status:'confirmado'}).eq('id',id);await carregarAgendamentos();showToast('✅ Agendamento confirmado!')}
+function renderAgendamentos(){const c=document.getElementById('agendamentosList');if(!c)return;const ativos=agendamentos.filter(a=>a.status!=='cancelado');if(!ativos.length){c.innerHTML='<p style="text-align:center;color:#6B6B7A;padding:20px">📅 Nenhum agendamento</p>';return}c.innerHTML=ativos.map(a=>{const sc=a.status==='confirmado'?'status-confirmado':'status-pendente';return`<div class="prontuario-card" style="border-left-color:${a.status==='confirmado'?'#4CAF7A':'#FF9800'}"><div class="prontuario-header"><span class="prontuario-cliente">${escapeHtmlCliente(a.cliente_nome)}</span><span class="status-badge ${sc}">${a.status==='confirmado'?'Confirmado':'Pendente'}</span></div><div class="prontuario-data">📅 ${new Date(a.data+'T00:00').toLocaleDateString('pt-BR')} · ⏰ ${a.hora} · ${a.tipo}</div><div style="display:flex;gap:6px;margin-top:6px">${a.status==='pendente'?`<button class="btn-outline btn-sm" onclick="confirmarAgendamento('${a.id}')" style="color:#4CAF7A;border-color:#4CAF7A"><i class="fas fa-check"></i> Confirmar</button>`:''}<button class="btn-outline btn-sm" onclick="remarcarAgendamento('${a.id}')"><i class="fas fa-calendar-alt"></i> Remarcar</button><button class="btn-outline btn-sm" onclick="cancelarAgendamento('${a.id}')" style="color:#E57373;border-color:#E57373"><i class="fas fa-times"></i> Cancelar</button></div></div>`}).join('');atualizarStats();renderProximos()}
+async function confirmarAgendamento(id){await sb.from('agendamentos').update({status:'confirmado'}).eq('id',id);await carregarAgendamentos();mostrarToastCliente('✅ Agendamento confirmado!')}
 function remarcarAgendamento(id){const a=agendamentos.find(a=>a.id==id);if(!a)return;document.getElementById('agendamentoCliente').value=a.cliente_nome;document.getElementById('agendamentoData').value=a.data;document.getElementById('agendamentoHora').value=a.hora;document.getElementById('agendamentoTipo').value=a.tipo;document.getElementById('modalAgendamento').classList.add('show')}
-async function cancelarAgendamento(id){if(!confirm('Cancelar este agendamento?'))return;await sb.from('agendamentos').update({status:'cancelado'}).eq('id',id);await carregarAgendamentos();showToast('❌ Agendamento cancelado')}
+async function cancelarAgendamento(id){if(!confirm('Cancelar este agendamento?'))return;await sb.from('agendamentos').update({status:'cancelado'}).eq('id',id);await carregarAgendamentos();mostrarToastCliente('❌ Agendamento cancelado')}
 function abrirModalAgendamento(){document.getElementById('agendamentoCliente').value='';document.getElementById('agendamentoData').value='';document.getElementById('agendamentoHora').value='';document.getElementById('modalAgendamento').classList.add('show')}
-async function salvarAgendamento(){const cliente=document.getElementById('agendamentoCliente').value;const data=document.getElementById('agendamentoData').value;const hora=document.getElementById('agendamentoHora').value;const tipo=document.getElementById('agendamentoTipo').value;if(!cliente||!data||!hora){showToast('❌ Preencha todos os campos');return}await sb.from('agendamentos').insert([{terapeuta_id:usuario.id,cliente_nome:cliente,data,hora,tipo,status:'pendente'}]);fecharM('modalAgendamento');await carregarAgendamentos();showToast('✅ Agendamento realizado!')}
-function renderProximos(){const c=document.getElementById('proximosAgendamentos');if(!c)return;const prox=agendamentos.filter(a=>a.status!=='cancelado').slice(0,3);c.innerHTML=prox.length?prox.map(a=>`<div class="activity-item"><span><i class="fas fa-circle" style="font-size:0.4rem;color:${a.status==='confirmado'?'#4CAF7A':'#FF9800'}"></i> ${a.cliente_nome}</span><span>📅 ${new Date(a.data+'T00:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'})} ⏰ ${a.hora}</span></div>`).join(''):'<div class="activity-item">📭 Nenhum agendamento</div>'}
+async function salvarAgendamento(){const cliente=document.getElementById('agendamentoCliente').value;const data=document.getElementById('agendamentoData').value;const hora=document.getElementById('agendamentoHora').value;const tipo=document.getElementById('agendamentoTipo').value;if(!cliente||!data||!hora){mostrarToastCliente('❌ Preencha todos os campos');return}await sb.from('agendamentos').insert([{terapeuta_id:usuario.id,cliente_nome:cliente,data,hora,tipo,status:'pendente'}]);fecharM('modalAgendamento');await carregarAgendamentos();mostrarToastCliente('✅ Agendamento realizado!')}
+function renderProximos(){const c=document.getElementById('proximosAgendamentos');if(!c)return;const prox=agendamentos.filter(a=>a.status!=='cancelado').slice(0,3);c.innerHTML=prox.length?prox.map(a=>`<div class="activity-item"><span><i class="fas fa-circle" style="font-size:0.4rem;color:${a.status==='confirmado'?'#4CAF7A':'#FF9800'}"></i> ${escapeHtmlCliente(a.cliente_nome)}</span><span>📅 ${new Date(a.data+'T00:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'})} ⏰ ${a.hora}</span></div>`).join(''):'<div class="activity-item">📭 Nenhum agendamento</div>'}
 
 async function carregarProntuarios(){if(!usuario)return;const{data}=await sb.from('prontuarios').select('*').eq('terapeuta_id',usuario.id).order('data',{ascending:false});prontuarios=data||[];renderProntuarios()}
-function renderProntuarios(){const c=document.getElementById('listaProntuarios');if(!c)return;const grouped={};prontuarios.forEach(p=>{if(!grouped[p.cliente_nome])grouped[p.cliente_nome]=[];grouped[p.cliente_nome].push(p)});const html=Object.entries(grouped).map(([cliente,pts])=>{const ultimo=pts[0];return`<div class="prontuario-card" onclick="verProntuario('${cliente}')"><div class="prontuario-header"><span class="prontuario-cliente">${cliente}</span><span class="prontuario-data">📝 ${pts.length} registro(s)</span></div><div style="font-size:0.7rem;color:#6B6B7A">Último: ${new Date(ultimo.data).toLocaleDateString('pt-BR')} · ${ultimo.texto.substring(0,60)}...</div></div>`}).join('');c.innerHTML=html||'<p style="text-align:center;color:#6B6B7A">📭 Nenhum prontuário</p>';atualizarStats()}
+function renderProntuarios(){const c=document.getElementById('listaProntuarios');if(!c)return;const grouped={};prontuarios.forEach(p=>{if(!grouped[p.cliente_nome])grouped[p.cliente_nome]=[];grouped[p.cliente_nome].push(p)});const html=Object.entries(grouped).map(([cliente,pts])=>{const ultimo=pts[0];return`<div class="prontuario-card" onclick="verProntuario('${cliente}')"><div class="prontuario-header"><span class="prontuario-cliente">${escapeHtmlCliente(cliente)}</span><span class="prontuario-data">📝 ${pts.length} registro(s)</span></div><div style="font-size:0.7rem;color:#6B6B7A">Último: ${new Date(ultimo.data).toLocaleDateString('pt-BR')} · ${escapeHtmlCliente(ultimo.texto.substring(0,60))}...</div></div>`}).join('');c.innerHTML=html||'<p style="text-align:center;color:#6B6B7A">📭 Nenhum prontuário</p>';atualizarStats()}
 function abrirModalProntuario(cliente){document.getElementById('prontuarioClienteSelect').value=cliente||'';document.getElementById('prontuarioTexto').value='';document.getElementById('modalProntuario').classList.add('show')}
-async function salvarProntuario(){const cliente=document.getElementById('prontuarioClienteSelect').value;const texto=document.getElementById('prontuarioTexto').value.trim();if(!cliente||!texto){showToast('❌ Preencha todos os campos');return}await sb.from('prontuarios').insert([{terapeuta_id:usuario.id,cliente_nome:cliente,texto}]);await sb.from('clientes').update({constelacoes: (clientes.find(c=>c.nome===cliente)?.constelacoes||0)+1}).eq('nome',cliente).eq('terapeuta_id',usuario.id);fecharM('modalProntuario');await carregarProntuarios();await carregarClientes();showToast('✅ Prontuário salvo!')}
-function verProntuario(nome){const pts=prontuarios.filter(p=>p.cliente_nome===nome);document.getElementById('verProntuarioNome').textContent=nome;document.getElementById('verProntuarioConteudo').innerHTML=pts.length?pts.map(p=>`<div style="margin-bottom:12px;"><strong>📅 ${new Date(p.data).toLocaleDateString('pt-BR')}</strong><p style="margin-top:5px;">${p.texto}</p></div>`).join('<hr>')+`<button class="btn-primary" onclick="fecharM('modalVerProntuario');abrirModalProntuario('${nome}')">+ Novo Registro</button>`:'<p>📭 Nenhum prontuário encontrado.</p><button class="btn-primary" onclick="fecharM(\'modalVerProntuario\');abrirModalProntuario(\''+nome+'\')">Criar Primeiro Prontuário</button>';document.getElementById('modalVerProntuario').classList.add('show')}
+async function salvarProntuario(){const cliente=document.getElementById('prontuarioClienteSelect').value;const texto=document.getElementById('prontuarioTexto').value.trim();if(!cliente||!texto){mostrarToastCliente('❌ Preencha todos os campos');return}await sb.from('prontuarios').insert([{terapeuta_id:usuario.id,cliente_nome:cliente,texto}]);await sb.from('clientes').update({constelacoes: (clientes.find(c=>c.nome===cliente)?.constelacoes||0)+1}).eq('nome',cliente).eq('terapeuta_id',usuario.id);fecharM('modalProntuario');await carregarProntuarios();await carregarClientes();mostrarToastCliente('✅ Prontuário salvo!')}
+function verProntuario(nome){const pts=prontuarios.filter(p=>p.cliente_nome===nome);document.getElementById('verProntuarioNome').textContent=nome;document.getElementById('verProntuarioConteudo').innerHTML=pts.length?pts.map(p=>`<div style="margin-bottom:12px;"><strong>📅 ${new Date(p.data).toLocaleDateString('pt-BR')}</strong><p style="margin-top:5px;">${escapeHtmlCliente(p.texto)}</p></div>`).join('<hr>')+`<button class="btn-primary" onclick="fecharM('modalVerProntuario');abrirModalProntuario('${nome}')">+ Novo Registro</button>`:'<p>📭 Nenhum prontuário encontrado.</p><button class="btn-primary" onclick="fecharM(\'modalVerProntuario\');abrirModalProntuario(\''+nome+'\')">Criar Primeiro Prontuário</button>';document.getElementById('modalVerProntuario').classList.add('show')}
 
 async function carregarPlanos(){const{data}=await sb.from('planos').select('*').eq('status','ativo').order('preco');planos=data||[];const grid=document.getElementById('planosGrid');if(grid)grid.innerHTML=planos.map(p=>`<div class="pacote-card" onclick="solicitarPlano('${p.id}')"><div class="pacote-qtd">💰 ${p.coins}</div><div>Synapse Coins</div><div class="pacote-preco">R$ ${p.preco.toFixed(2)}${p.tipo==='mensal'?'/mês':''}</div><div style="font-size:0.6rem;color:#6B6B7A;margin-top:5px">📱 Clique para comprar</div>${p.tipo==='mensal'&&p.coins>=50?'<div class="pacote-badge">Popular</div>':''}</div>`).join('');const pa=planos.find(p=>p.id===usuario?.plano_id);document.getElementById('planoAtualNome').textContent=pa?pa.nome:'Sem plano ativo'}
 
-// ✅ FUNÇÃO CORRIGIDA DE SOLICITAÇÃO DE PLANO
 async function solicitarPlano(planoId){
     const p = planos.find(p => p.id == planoId);
-    if(!p){showToast('❌ Plano não encontrado');return;}
-    if(!usuario){showToast('❌ Faça login primeiro');return;}
-    showToast('📱 Criando solicitação...');
+    if(!p){mostrarToastCliente('❌ Plano não encontrado');return;}
+    if(!usuario){mostrarToastCliente('❌ Faça login primeiro');return;}
+    mostrarToastCliente('📱 Criando solicitação...');
     try {
         const { error } = await sb.from('solicitacoes_recarga').insert([{ 
             terapeuta_id: usuario.id, 
@@ -321,17 +351,20 @@ async function solicitarPlano(planoId){
             status: 'pendente',
             data_solicitacao: new Date().toISOString()
         }]);
-        if(error){console.error(error);showToast('❌ Erro ao solicitar. Tente novamente.');return;}
-        showToast('✅ Solicitação registrada! Redirecionando para WhatsApp...');
+        if(error){console.error(error);mostrarToastCliente('❌ Erro ao solicitar. Tente novamente.');return;}
+        mostrarToastCliente('✅ Solicitação registrada! Redirecionando para WhatsApp...');
         const msg = `🟣 *NOVA SOLICITAÇÃO DE RECARGA - SYNAPSE* 🟣\n\n👤 *Terapeuta:* ${usuario.nome}\n📧 *E-mail:* ${usuario.email}\n📱 *Telefone:* ${usuario.telefone || 'Não informado'}\n\n📦 *Plano:* ${p.nome}\n💰 *Quantidade:* ${p.coins} Synapse Coins\n💵 *Valor:* R$ ${p.preco.toFixed(2)}\n📅 *Data:* ${new Date().toLocaleString('pt-BR')}\n\n✅ *Status:* Aguardando aprovação`;
         const whatsappNumber = '5579996458399';
         window.open(`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(msg)}`, '_blank');
-    } catch (err) {console.error(err);showToast('❌ Erro ao processar solicitação');}
+    } catch (err) {console.error(err);mostrarToastCliente('❌ Erro ao processar solicitação');}
 }
 
-// ✅ FUNÇÃO PARA LIMPAR O CHAT DO CLIENTE
+// =====================================================
+// CHAT COM REALTIME - CLIENTE VERSÃO FINAL
+// =====================================================
+
 async function limparChatCliente(){
-    if(!usuario){showToast('❌ Faça login primeiro');return;}
+    if(!usuario){mostrarToastCliente('❌ Faça login primeiro');return;}
     if(!confirm('⚠️ Tem certeza que deseja apagar TODAS as mensagens do chat?')) return;
     try {
         if(chatRealtimeChannel){
@@ -339,32 +372,26 @@ async function limparChatCliente(){
             chatRealtimeChannel = null;
         }
         await sb.from('mensagens').delete().eq('terapeuta_id', usuario.id);
-        await carregarHistoricoChatCliente();
+        await carregarHistoricoCliente();
         iniciarRealtimeChatCliente();
-        showToast('🗑️ Chat limpo com sucesso!');
-    } catch (err) {showToast('❌ Erro ao limpar o chat');}
+        mostrarToastCliente('🗑️ Chat limpo com sucesso!');
+    } catch (err) {mostrarToastCliente('❌ Erro ao limpar o chat');}
 }
 
-// =====================================================
-// CHAT COM REALTIME - MENSAGENS INSTANTÂNEAS
-// =====================================================
-
-// Carregar histórico de mensagens
-async function carregarHistoricoChatCliente(){
+async function carregarHistoricoCliente(){
     if(!usuario) return;
     const c = document.getElementById('chatMessages');
     if(!c) return;
-    const {data} = await sb.from('mensagens').select('*').or(`terapeuta_id.eq.${usuario.id},is_admin.eq.true`).order('data',{ascending:true}).limit(50);
-    mensagens = data || [];
-    if(!mensagens.length){
+    const {data} = await sb.from('mensagens').select('*').or(`terapeuta_id.eq.${usuario.id},is_admin.eq.true`).order('data',{ascending:true});
+    const msgs = data || [];
+    if(msgs.length === 0){
         c.innerHTML = '<p style="text-align:center;color:#6B6B7A;padding:40px">💬 Nenhuma mensagem. Envie uma mensagem para o suporte!</p>';
         return;
     }
-    c.innerHTML = mensagens.map(m => `<div class="chat-message ${m.is_admin ? 'received' : 'sent'}"><strong>${m.is_admin ? '📢 Suporte' : 'Você'}</strong><br>${m.mensagem}<div class="msg-time">${new Date(m.data).toLocaleString('pt-BR')}</div></div>`).join('');
+    c.innerHTML = msgs.map(m => `<div class="chat-message ${m.is_admin ? 'received' : 'sent'}"><strong>${m.is_admin ? '📢 Suporte' : 'Você'}</strong><br>${escapeHtmlCliente(m.mensagem)}<div class="msg-time">${new Date(m.data).toLocaleString('pt-BR')}</div></div>`).join('');
     c.scrollTop = c.scrollHeight;
 }
 
-// Iniciar Realtime - chega instantaneamente
 function iniciarRealtimeChatCliente(){
     if(!usuario) return;
     if(chatRealtimeChannel){
@@ -380,14 +407,13 @@ function iniciarRealtimeChatCliente(){
             filter: `terapeuta_id=eq.${usuario.id}`
         }, (payload) => {
             const novaMensagem = payload.new;
-            // Só adiciona se for do admin (is_admin = true)
             if(novaMensagem.is_admin){
-                adicionarMensagemChatCliente(novaMensagem);
-                // Tocar som de notificação
+                adicionarMensagemCliente(novaMensagem);
+                mostrarNotificacaoCliente('📢 Suporte enviou uma mensagem');
                 try {
                     const audio = new Audio('https://www.soundjay.com/misc/sounds/bell-ringing-05.mp3');
                     audio.volume = 0.3;
-                    audio.play().catch(e => console.log('Áudio não suportado'));
+                    audio.play().catch(e => console.log('Áudio'));
                 } catch(e) {}
                 document.getElementById('chatNotif').style.display = 'block';
             }
@@ -395,34 +421,31 @@ function iniciarRealtimeChatCliente(){
         .subscribe();
 }
 
-// Adicionar mensagem na tela sem recarregar tudo
-function adicionarMensagemChatCliente(mensagem){
+function adicionarMensagemCliente(mensagem){
     const c = document.getElementById('chatMessages');
     if(!c) return;
-    // Remove mensagem de "nenhuma mensagem" se existir
     if(c.innerHTML.includes('Nenhuma mensagem')){
-        c.innerHTML = '';
+        carregarHistoricoCliente();
+        return;
     }
     const msgDiv = document.createElement('div');
     msgDiv.className = 'chat-message received';
-    msgDiv.innerHTML = `<strong>📢 Suporte</strong><br>${mensagem.mensagem}<div class="msg-time">${new Date(mensagem.data).toLocaleString('pt-BR')}</div>`;
+    msgDiv.innerHTML = `<strong>📢 Suporte</strong><br>${escapeHtmlCliente(mensagem.mensagem)}<div class="msg-time">${new Date(mensagem.data).toLocaleString('pt-BR')}</div>`;
     c.appendChild(msgDiv);
     c.scrollTop = c.scrollHeight;
 }
 
-// Função para enviar mensagem (mantida original)
 async function enviarMsg(){
     const i = document.getElementById('chatInput');
     const m = i.value.trim();
-    if(!m){showToast('Digite uma mensagem');return;}
+    if(!m){mostrarToastCliente('Digite uma mensagem');return;}
     if(!usuario)return;
     
-    // Adicionar mensagem enviada instantaneamente na tela
     const c = document.getElementById('chatMessages');
     if(c && !c.innerHTML.includes('Nenhuma mensagem')){
         const msgDiv = document.createElement('div');
         msgDiv.className = 'chat-message sent';
-        msgDiv.innerHTML = `<strong>Você</strong><br>${m}<div class="msg-time">${new Date().toLocaleString('pt-BR')}</div>`;
+        msgDiv.innerHTML = `<strong>Você</strong><br>${escapeHtmlCliente(m)}<div class="msg-time">${new Date().toLocaleString('pt-BR')}</div>`;
         c.appendChild(msgDiv);
         c.scrollTop = c.scrollHeight;
     }
@@ -435,17 +458,17 @@ async function enviarMsg(){
         lida: false
     }]);
     i.value = '';
-    await carregarHistoricoChatCliente();
+    await carregarHistoricoCliente();
 }
 
 document.getElementById('chatInput')?.addEventListener('keypress',e=>{if(e.key==='Enter')enviarMsg()});
-async function atualizarPerfil(){const tel=document.getElementById('perfilTelefone').value;const senha=document.getElementById('novaSenha').value;const d={telefone:tel};if(senha&&senha.length>=6)d.senha=senha;await sb.from('terapeutas').update(d).eq('id',usuario.id);if(senha){document.getElementById('novaSenha').value='';showToast('✅ Senha alterada!')}else{showToast('✅ Perfil atualizado!')}}
+async function atualizarPerfil(){const tel=document.getElementById('perfilTelefone').value;const senha=document.getElementById('novaSenha').value;const d={telefone:tel};if(senha&&senha.length>=6)d.senha=senha;await sb.from('terapeutas').update(d).eq('id',usuario.id);if(senha){document.getElementById('novaSenha').value='';mostrarToastCliente('✅ Senha alterada!')}else{mostrarToastCliente('✅ Perfil atualizado!')}}
 function fecharM(id){document.getElementById(id).classList.remove('show')}
-function showToast(msg){const t=document.createElement('div');t.className='toast';t.textContent=msg;document.body.appendChild(t);setTimeout(()=>t.remove(),2000)}
+
 window.addEventListener('click',e=>{if(e.target.classList.contains('modal-overlay'))e.target.classList.remove('show')});
 
 async function abrirSala3D(){
-    if(!usuario){showToast('❌ Faça login primeiro!');return;}
+    if(!usuario){mostrarToastCliente('❌ Faça login primeiro!');return;}
     
     const sessaoId = localStorage.getItem('sessaoConstelacao_'+usuario.id);
     const sessaoInicio = localStorage.getItem('sessaoInicio_'+usuario.id);
@@ -464,10 +487,10 @@ async function abrirSala3D(){
     }
     
     if(sessaoAtivaValida) {
-        showToast('🔄 Retornando à sua constelação ativa!');
+        mostrarToastCliente('🔄 Retornando à sua constelação ativa!');
     } else {
         if((usuario.saldo || 0) < 1){
-            showToast('❌ Saldo insuficiente! Adquira Synapse Coins na aba Planos.');
+            mostrarToastCliente('❌ Saldo insuficiente! Adquira Synapse Coins na aba Planos.');
             return;
         }
         
@@ -485,7 +508,7 @@ async function abrirSala3D(){
         localStorage.removeItem('sessaoFinalizada_'+usuario.id);
         localStorage.removeItem('salaEstado_'+usuario.id);
         
-        showToast(`💰 -1 Synapse Coin | ⏱️ Sessão válida por ${TIMEOUT_HORAS} horas`);
+        mostrarToastCliente(`💰 -1 Synapse Coin | ⏱️ Sessão válida por ${TIMEOUT_HORAS} horas`);
     }
     
     const estadoSalvo = localStorage.getItem('salaEstado_'+usuario.id);
@@ -556,7 +579,7 @@ function finalizarConstelacao(){
         window.opener.document.getElementById('statConstelacoes').textContent = window.opener.usuario.constelacoes_realizadas;
         if(window.opener.atualizarProgresso) window.opener.atualizarProgresso();
         window.opener.localStorage.setItem('sessaoFinalizada_'+window.opener.usuario.id, 'true');
-        window.opener.showToast('✨ Constelação finalizada! +1 constelação realizada.');
+        window.opener.mostrarToastCliente('✨ Constelação finalizada! +1 constelação realizada.');
     }
     if(uid){
         localStorage.removeItem('sessaoConstelacao_'+uid);
@@ -590,13 +613,14 @@ if(window.estadoInicial&&window.estadoInicial.membros&&window.estadoInicial.memb
     w.document.close();
 }
 
-// Funções globais
 window.limparChatCliente = limparChatCliente;
 window.enviarMsg = enviarMsg;
 window.solicitarPlano = solicitarPlano;
 window.verificarSessaoAtiva = verificarSessaoAtiva;
 window.abrirSala3D = abrirSala3D;
-window.carregarHistoricoChatCliente = carregarHistoricoChatCliente;
+window.fecharM = fecharM;
+window.carregarHistoricoCliente = carregarHistoricoCliente;
+window.mostrarToastCliente = mostrarToastCliente;
 </script>
 </body>
 </html>
