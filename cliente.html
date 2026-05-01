@@ -131,6 +131,7 @@ const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZ
 const sb=supabase.createClient(SB_URL,SB_KEY);
 let usuario=null,clientes=[],agendamentos=[],prontuarios=[],planos=[];
 let sessaoTimerInterval = null;
+let pollings = [];
 
 const TIMEOUT_HORAS = 2;
 const TIMEOUT_MS = TIMEOUT_HORAS * 60 * 60 * 1000;
@@ -138,6 +139,8 @@ const TIMEOUT_MS = TIMEOUT_HORAS * 60 * 60 * 1000;
 document.getElementById('btnLogin').onclick=login;
 document.getElementById('loginPassword').addEventListener('keypress',e=>{if(e.key==='Enter')login()});
 document.getElementById('btnLogout').onclick=()=>{
+    pollings.forEach(p=>clearInterval(p));
+    pollings=[];
     if(usuario){
         const uid=usuario.id;
         localStorage.removeItem('sessaoConstelacao_'+uid);
@@ -178,9 +181,51 @@ async function login(){
     document.getElementById('welcomeNome').textContent='Bem-vindo(a), '+(usuario.nome?.split(' ')[0]||'Terapeuta');
     document.getElementById('statConstelacoes').textContent=usuario.constelacoes_realizadas||0;
     await carregarTudo();
+    iniciarPollingTempoReal();
     verificarSessaoAtiva();
     iniciarTimerSessao();
     showToast('✅ Bem-vindo(a) ao SYNAPSE!');
+}
+
+function iniciarPollingTempoReal() {
+    pollings.forEach(p=>clearInterval(p));
+    pollings=[];
+    
+    // Atualiza dados do terapeuta a cada 5 segundos
+    pollings.push(setInterval(async () => {
+        if (!usuario) return;
+        try {
+            const { data } = await sb.from('terapeutas')
+                .select('*')
+                .eq('id', usuario.id)
+                .single();
+            if (data) {
+                const saldoAntigo = usuario.saldo;
+                const constelacoesAntigas = usuario.constelacoes_realizadas;
+                usuario = data;
+                atualizarSaldos();
+                document.getElementById('statConstelacoes').textContent = usuario.constelacoes_realizadas || 0;
+                atualizarProgresso();
+                
+                // Notifica se houve mudança no saldo
+                if (data.saldo !== saldoAntigo) {
+                    const diff = data.saldo - saldoAntigo;
+                    if (diff > 0) {
+                        showToast(`💰 +${diff} Synapse Coins recebidos!`);
+                    }
+                }
+                if (data.constelacoes_realizadas !== constelacoesAntigas) {
+                    verificarSessaoAtiva();
+                }
+            }
+        } catch(e) {}
+    }, 5000));
+    
+    // Atualiza planos a cada 30 segundos
+    pollings.push(setInterval(async () => {
+        if (!usuario) return;
+        await carregarPlanos();
+    }, 30000));
 }
 
 function iniciarTimerSessao() {
@@ -189,7 +234,7 @@ function iniciarTimerSessao() {
         if(usuario && document.getElementById('panelSala').classList.contains('active')) {
             verificarSessaoAtiva();
         }
-    }, 60000);
+    }, 30000); // Reduzido para 30 segundos
 }
 
 function atualizarSaldos(){const s=usuario?.saldo||0;['saldoCoins','salaSaldo','planoAtualCoins'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=s})}
@@ -202,15 +247,22 @@ function verificarSessaoAtiva(){
     const btn = document.getElementById('btnEntrarSala');
     const info = document.getElementById('sessaoAtivaInfo');
     
-    if(sessaoId && sessaoInicio && !sessaoFinalizada) {
+    if(sessaoFinalizada) {
+        if(info) info.innerHTML = '';
+        if(btn) btn.innerHTML = '<i class="fas fa-vr-cardboard"></i> Iniciar Nova Constelação';
+        return;
+    }
+    
+    if(sessaoId && sessaoInicio) {
         const tempoPassado = Date.now() - parseInt(sessaoInicio);
         
         if(tempoPassado > TIMEOUT_MS) {
             localStorage.removeItem('sessaoConstelacao_'+usuario.id);
             localStorage.removeItem('sessaoInicio_'+usuario.id);
             localStorage.removeItem('salaEstado_'+usuario.id);
+            localStorage.removeItem('sessaoFinalizada_'+usuario.id);
             if(info) info.innerHTML = `<span class="timer-badge timer-badge-expired">⏰ Sessão expirou após ${TIMEOUT_HORAS} horas. Inicie uma nova constelação (1 Coin).</span>`;
-            if(btn) btn.innerHTML = '<i class="fas fa-vr-cardboard"></i> Nova Constelação (1 Coin)';
+            if(btn) btn.innerHTML = '<i class="fas fa-vr-cardboard"></i> Iniciar Nova Constelação';
             return;
         }
         
@@ -229,11 +281,11 @@ function verificarSessaoAtiva(){
             if(minutosRest <= 15) cssClass = 'timer-badge timer-badge-expiring';
         }
         
-        if(info) info.innerHTML = `<span class="${cssClass}">🔄 Sessão ativa! Expira em ${tempoMsg}. Clique em "Retornar" para continuar.</span>`;
+        if(info) info.innerHTML = `<span class="${cssClass}">🔄 Sessão ativa! Expira em ${tempoMsg}.</span>`;
         if(btn) btn.innerHTML = '<i class="fas fa-door-open"></i> Retornar à Constelação';
     } else {
         if(info) info.innerHTML = '';
-        if(btn) btn.innerHTML = '<i class="fas fa-vr-cardboard"></i> Nova Constelação (1 Coin)';
+        if(btn) btn.innerHTML = '<i class="fas fa-vr-cardboard"></i> Iniciar Nova Constelação';
     }
 }
 
@@ -308,6 +360,13 @@ async function abrirSala3D(){
     const sessaoInicio = localStorage.getItem('sessaoInicio_'+usuario.id);
     const sessaoFinalizada = localStorage.getItem('sessaoFinalizada_'+usuario.id);
     
+    if(sessaoFinalizada) {
+        localStorage.removeItem('sessaoConstelacao_'+usuario.id);
+        localStorage.removeItem('sessaoInicio_'+usuario.id);
+        localStorage.removeItem('salaEstado_'+usuario.id);
+        localStorage.removeItem('sessaoFinalizada_'+usuario.id);
+    }
+    
     let sessaoAtivaValida = false;
     if(sessaoId && sessaoInicio && !sessaoFinalizada) {
         const tempoPassado = Date.now() - parseInt(sessaoInicio);
@@ -368,14 +427,14 @@ canvas{position:fixed;top:0;left:0;width:100vw;height:100vh;display:block;cursor
 .toast{position:fixed;bottom:65px;left:50%;transform:translateX(-50%);background:#6B4E9E;color:#fff;padding:5px 14px;border-radius:14px;font-size:0.6rem;z-index:300;pointer-events:none;animation:fIn 0.3s}@keyframes fIn{from{opacity:0;transform:translateX(-50%) translateY(5px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
 .mod{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);z-index:200;align-items:center;justify-content:center}.mod.show{display:flex}
 .modbox{background:#1a1a2e;border:1px solid #3a3a4a;border-radius:14px;padding:18px;width:310px}.modbox h3{color:#e6c88a;font-size:0.8rem;margin-bottom:10px}.modbox input,.modbox select{width:100%;background:#0a0a14;border:1px solid #3a3a4a;border-radius:8px;padding:7px 10px;margin-bottom:7px;color:#fff;font-family:inherit;font-size:0.72rem}.modbtns{display:flex;gap:5px;margin-top:6px}.modbtns button{flex:1;padding:6px;border-radius:12px;border:none;cursor:pointer;font-weight:600;font-family:inherit;font-size:0.65rem}.btnp{background:#6B4E9E;color:#fff}.btnc{background:#3a3a4a;color:#fff}
-.fin{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.9);z-index:500;align-items:center;justify-content:center;flex-direction:column;gap:12px}.fin.show{display:flex}.fin i{font-size:3rem;color:#4CAF7A;animation:pop 0.5s}.fin h2{color:#fff;font-size:1.2rem}.fin p{color:#aaa;font-size:0.7rem}.fin .btns button{padding:10px 20px;border-radius:20px;border:none;cursor:pointer;font-weight:600;font-family:inherit;font-size:0.8rem;margin:0 5px}.btn-voltar{background:#6B4E9E;color:#fff}@keyframes pop{0%{transform:scale(0)}70%{transform:scale(1.2)}100%{transform:scale(1)}}
+.fin{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.9);z-index:500;align-items:center;justify-content:center;flex-direction:column;gap:12px}.fin.show{display:flex}.fin i{font-size:3rem;color:#4CAF7A;animation:pop 0.5s}.fin h2{color:#fff;font-size:1.2rem}.fin p{color:#aaa;font-size:0.7rem}.fin .btns button{padding:10px 20px;border-radius:20px;border:none;cursor:pointer;font-weight:600;font-family:inherit;font-size:0.8rem;margin:0 5px}.btn-voltar{background:#6B4E9E;color:#fff;padding:10px 20px;border-radius:20px;border:none;cursor:pointer;font-weight:600;font-family:inherit;font-size:0.8rem}@keyframes pop{0%{transform:scale(0)}70%{transform:scale(1.2)}100%{transform:scale(1)}}
 <\/style></head><body><canvas id="c3d"></canvas>
 <div class="gt"><button class="gtb green" onclick="fin()"><i class="fas fa-check"></i> Finalizar</button><button class="gtb" onclick="clr()"><i class="fas fa-broom"></i> Limpar</button><button class="gtb" onclick="circ()"><i class="fas fa-circle"></i> Círculo</button><button class="gtb" onclick="shot()"><i class="fas fa-camera"></i> Foto</button><button class="gtb" id="lockBtn" onclick="tCam()"><i class="fas fa-lock"></i> Travar</button><button class="gtb red" onclick="window.close()"><i class="fas fa-times"></i> Sair</button></div>
 <div class="gl"><button class="glb sel" id="moveTool" onclick="setMode('move')"><i class="fas fa-arrows-alt"></i><span class="tip">Mover</span></button><button class="glb" onclick="rotS()"><i class="fas fa-sync-alt"></i><span class="tip">Girar</span></button><button class="glb" onclick="undo()"><i class="fas fa-undo"></i><span class="tip">Desfazer</span></button><button class="glb" onclick="swapS()"><i class="fas fa-venus-mars"></i><span class="tip">Sexo</span></button><button class="glb" onclick="delSel()"><i class="fas fa-trash-alt"></i><span class="tip">Remover</span></button></div>
 <div class="gr"><div class="grg"><span class="grl">Conexão</span><span class="ge" onclick="qConn('amor')">❤️<span class="etip">Amor</span></span><span class="ge" onclick="qConn('paz')">🕊️<span class="etip">Paz</span></span><span class="ge" onclick="qConn('conflito')">⚡<span class="etip">Conflito</span></span><span class="ge" onclick="qConn('apoio')">🤝<span class="etip">Apoio</span></span><span class="ge" onclick="qConn('ruptura')">💔<span class="etip">Ruptura</span></span><span class="ge" onclick="qConn('morte')">💀<span class="etip">Luto</span></span></div><div class="grg"><span class="grl">Emoção</span><span class="ge" onclick="aEmo('😢')">😢<span class="etip">Tristeza</span></span><span class="ge" onclick="aEmo('🌟')">🌟<span class="etip">Cura</span></span><span class="ge" onclick="aEmo('🔥')">🔥<span class="etip">Raiva</span></span><span class="ge" onclick="aEmo('🙏')">🙏<span class="etip">Gratidão</span></span></div></div>
 <div class="gb"><span class="gbc sel" data-g="masc">👨 M</span><span class="gbc" data-g="fem">👩 F</span><span class="gbc" data-g="neutro">🌀 N</span><span class="gbs"></span><span class="gbc gold" onclick="add('Eu','eu')">⭐ Eu</span><span class="gbc" onclick="add('Pai','pai')">Pai</span><span class="gbc" onclick="add('Mãe','mae')">Mãe</span><span class="gbc" onclick="add('Filho(a)','filho')">Filho(a)</span><span class="gbc" onclick="add('Irmão(ã)','irmao')">Irmão(ã)</span><span class="gbc" onclick="add('Avô(ó)','avo')">Avô(ó)</span><span class="gbc" onclick="add('Marido','marido')">Marido</span><span class="gbc" onclick="add('Esposa','esposa')">Esposa</span><span class="gbs"></span><span class="gbc purple" onclick="aPert('morto')">💀 Falecido</span><span class="gbc purple" onclick="aPert('excluido')">🚫 Excluído</span><span class="gbc blue" onclick="openMod()">+ Outro</span></div>
 <div class="mod" id="mod"><div class="modbox"><h3>Nova Pessoa</h3><input type="text" id="modName" placeholder="Nome"><select id="modPert"><option value="familia_origem">🏠 Família de Origem</option><option value="ancestrais">👴 Ancestrais</option><option value="familia_ampliada">👥 Família Ampliada</option><option value="afetivo">💕 Afetivo</option><option value="social" selected>🤝 Social</option><option value="morte">💀 Morte</option><option value="excluidos">🚫 Excluídos</option><option value="outro">❓ Outro</option></select><div class="modbtns"><button class="btnp" onclick="cMod()">Adicionar</button><button class="btnc" onclick="clMod()">Cancelar</button></div></div></div>
-<div class="fin" id="finOverlay"><i class="fas fa-check-circle"></i><h2>Constelação Finalizada!</h2><p id="finMsg"></p><button class="btn-voltar" onclick="window.close()"><i class="fas fa-arrow-left"></i> Voltar ao Painel</button></div>
+<div class="fin" id="finOverlay"><i class="fas fa-check-circle"></i><h2>Constelação Finalizada!</h2><p id="finMsg"></p><button class="btn-voltar" onclick="finalizarConstelacao()"><i class="fas fa-arrow-left"></i> Voltar ao Painel</button></div>
 <script>
 const cv=document.getElementById('c3d');const r=new THREE.WebGLRenderer({canvas:cv,antialias:true,preserveDrawingBuffer:true});const s=new THREE.Scene();s.background=new THREE.Color(0x0e0e1a);const cam=new THREE.PerspectiveCamera(42,innerWidth/innerHeight,0.1,1000);cam.position.set(5.5,5.0,6.5);cam.lookAt(0,0.4,0);const lr=new THREE.CSS2DRenderer();lr.setSize(innerWidth,innerHeight);lr.domElement.style.cssText='position:fixed;top:0;left:0;pointer-events:none;z-index:50;';document.body.appendChild(lr.domElement);addEventListener('resize',()=>{cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix();r.setSize(innerWidth,innerHeight);lr.setSize(innerWidth,innerHeight)});r.setSize(innerWidth,innerHeight);const ctrl=new THREE.OrbitControls(cam,r.domElement);ctrl.enableDamping=true;ctrl.enablePan=false;ctrl.target.set(0,0.6,0);let cL=false,md='move';const FR=3.2,SCALE=0.75;
 const gnd=new THREE.Mesh(new THREE.CircleGeometry(FR+0.3,32),new THREE.MeshStandardMaterial({color:0x2a3a2a,roughness:0.5}));gnd.rotation.x=-Math.PI/2;gnd.position.y=-0.25;s.add(gnd);
@@ -413,12 +472,16 @@ function finalizarConstelacao(){
         window.opener.document.getElementById('statConstelacoes').textContent = window.opener.usuario.constelacoes_realizadas;
         if(window.opener.atualizarProgresso) window.opener.atualizarProgresso();
         window.opener.localStorage.setItem('sessaoFinalizada_'+window.opener.usuario.id, 'true');
-        window.opener.showToast('✨ Constelação finalizada! +1 constelação realizada.');
+        window.opener.localStorage.removeItem('sessaoConstelacao_'+window.opener.usuario.id);
+        window.opener.localStorage.removeItem('sessaoInicio_'+window.opener.usuario.id);
+        window.opener.localStorage.removeItem('salaEstado_'+window.opener.usuario.id);
+        window.opener.showToast('✨ Constelação finalizada com sucesso!');
     }
     if(uid){
         localStorage.removeItem('sessaoConstelacao_'+uid);
         localStorage.removeItem('sessaoInicio_'+uid);
         localStorage.removeItem('salaEstado_'+uid);
+        localStorage.removeItem('sessaoFinalizada_'+uid);
     }
     window.close();
 }
