@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SYNAPSE - Login</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root{--primary:#6B4E9E;--primary-dark:#2D1B4E;--primary-light:#F0EBF8;--bg:#F8F7FC;--text:#2D1B4E;--text-light:#6B6B7A;--border:#E8E4F0;--danger:#E57373;--white:#FFFFFF;--radius:12px}
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:'Inter',sans-serif;background:linear-gradient(135deg,#2D1B4E,#1a0f30);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:16px}
+        .loading{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9999;justify-content:center;align-items:center}
+        .loading.show{display:flex}
+        .spinner{width:36px;height:36px;border:3px solid rgba(255,255,255,.2);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite}
+        @keyframes spin{to{transform:rotate(360deg)}}
+        .login-card{background:var(--white);border-radius:24px;padding:40px 32px;width:100%;max-width:400px;box-shadow:0 20px 50px rgba(0,0,0,.3);text-align:center}
+        .login-card .logo-icon{font-size:2.5rem;color:var(--primary);background:var(--primary-light);width:72px;height:72px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px}
+        .login-card h1{font-size:1.5rem;font-weight:700;color:var(--text);margin-bottom:4px}
+        .login-card .subtitle{font-size:.8rem;color:var(--text-light);margin-bottom:24px}
+        .form-group{margin-bottom:10px;text-align:left}
+        .form-group label{display:block;font-size:10px;font-weight:500;color:var(--text-light);margin-bottom:3px;text-transform:uppercase;letter-spacing:.3px}
+        .form-group select,.form-group input{width:100%;padding:10px 14px;background:var(--bg);border:2px solid var(--border);border-radius:50px;font-size:13px;color:var(--text);font-family:inherit;transition:all .15s}
+        .form-group select:focus,.form-group input:focus{outline:none;border-color:var(--primary)}
+        .form-group select option{background:#fff;color:var(--text)}
+        .btn-login{width:100%;padding:12px;background:var(--primary);color:#fff;border:none;border-radius:50px;font-size:14px;font-weight:600;cursor:pointer;margin-top:8px;font-family:inherit;transition:all .15s}
+        .btn-login:hover{background:#5a3d8a;transform:translateY(-2px);box-shadow:0 8px 20px rgba(107,78,158,.3)}
+        .login-error{color:var(--danger);font-size:10px;margin-top:8px;display:none}
+        .login-footer{margin-top:18px;padding-top:14px;border-top:1px solid var(--border);font-size:.65rem;color:var(--text-light);line-height:1.7}
+        .login-footer .whatsapp{color:#25D366;font-weight:600}
+    </style>
+</head>
+<body>
+<div class="loading" id="loading"><div class="spinner"></div></div>
+<div class="login-card">
+    <div class="logo-icon"><i class="fas fa-brain"></i></div>
+    <h1>SYNAPSE</h1>
+    <p class="subtitle">Constelação Sistêmica</p>
+    <div class="form-group"><label>Tipo de Acesso</label><select id="loginTipo"><option value="admin">Administrador</option><option value="terapeuta">Terapeuta</option></select></div>
+    <div class="form-group"><label>Email</label><input type="email" id="loginEmail" placeholder="seu@email.com" value="admin@synapse.com"></div>
+    <div class="form-group"><label>Senha</label><input type="password" id="loginSenha" placeholder="Sua senha" value="admin123"></div>
+    <button class="btn-login" id="btnLogin"><i class="fas fa-sign-in-alt"></i> Entrar</button>
+    <p class="login-error" id="loginError"></p>
+    <div class="login-footer">© 2026<br>Todos os direitos reservados<br><i class="fab fa-whatsapp"></i> <span class="whatsapp">(79) 99645-8399</span></div>
+</div>
+
+<script src="supabase.js"></script>
+<script>
+$('btnLogin').addEventListener('click', async () => {
+    const tipo = $('loginTipo').value;
+    const email = $('loginEmail').value.trim();
+    const senha = $('loginSenha').value;
+    const err = $('loginError');
+    err.style.display = 'none';
+    if (!email || !senha) { err.textContent = 'Preencha todos os campos'; err.style.display = 'block'; return; }
+    showLoading();
+    const { data, error } = await sb.from('terapeutas').select('*').eq('email', email).eq('senha', senha).eq('status', 'ativo').single();
+    hideLoading();
+    if (error || !data) { err.textContent = 'Email ou senha incorretos'; err.style.display = 'block'; return; }
+    if (tipo === 'admin' && email !== 'admin@synapse.com') { err.textContent = 'Acesso restrito ao administrador'; err.style.display = 'block'; return; }
+    if (tipo === 'terapeuta' && email === 'admin@synapse.com') { err.textContent = 'Use o painel Admin para este email'; err.style.display = 'block'; return; }
+    criarSessao(tipo, data.id, data.nome);
+    window.location.href = tipo === 'admin' ? 'admin.html' : 'terapeuta.html';
+});
+$('loginSenha').addEventListener('keypress', e => { if (e.key === 'Enter') $('btnLogin').click(); });
+</script>
+</body>
+</html>
