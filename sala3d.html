@@ -11,53 +11,28 @@
         body{font-family:'Inter',sans-serif;background:#0a0a14;overflow:hidden;height:100vh;width:100vw}
         canvas{position:fixed;top:0;left:0;width:100vw;height:100vh;cursor:grab;z-index:1}
         canvas:active{cursor:grabbing}
-        
         .toolbar-top{position:fixed;top:10px;left:50%;transform:translateX(-50%);display:flex;gap:6px;z-index:100}
         .btn-top{background:rgba(10,10,20,.9);border:1px solid rgba(255,255,255,.1);border-radius:22px;padding:6px 14px;color:#ccc;cursor:pointer;font-size:12px;font-family:inherit;transition:.2s;white-space:nowrap}
-        .btn-top:hover{background:#6B4E9E;color:#fff}
-        .btn-top.green{background:rgba(76,175,122,.3);border-color:rgba(76,175,122,.5)}.btn-top.green:hover{background:#4CAF7A}
-        .btn-top.red{background:rgba(229,115,115,.2);border-color:rgba(229,115,115,.4)}.btn-top.red:hover{background:#c46a5a}
-        
+        .btn-top:hover{background:#6B4E9E;color:#fff}.btn-top.green{background:rgba(76,175,122,.3);border-color:rgba(76,175,122,.5)}.btn-top.green:hover{background:#4CAF7A}.btn-top.red{background:rgba(229,115,115,.2);border-color:rgba(229,115,115,.4)}.btn-top.red:hover{background:#c46a5a}
         .toolbar-left{position:fixed;left:10px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:4px;z-index:100}
         .btn-left{width:38px;height:38px;border-radius:10px;background:rgba(10,10,20,.9);border:1px solid rgba(255,255,255,.1);color:#ccc;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;transition:.2s;position:relative}
-        .btn-left:hover{background:#6B4E9E;color:#fff}.btn-left.active{background:#6B4E9E;color:#fff}
-        .btn-left .tip{position:absolute;left:46px;background:#000;color:#fff;padding:3px 8px;border-radius:6px;font-size:9px;white-space:nowrap;pointer-events:none;opacity:0;transition:.2s}
-        .btn-left:hover .tip{opacity:1}
-        
+        .btn-left:hover{background:#6B4E9E;color:#fff}.btn-left.active{background:#6B4E9E;color:#fff}.btn-left .tip{position:absolute;left:46px;background:#000;color:#fff;padding:3px 8px;border-radius:6px;font-size:9px;white-space:nowrap;pointer-events:none;opacity:0;transition:.2s}.btn-left:hover .tip{opacity:1}
         .toolbar-right{position:fixed;right:10px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:3px;z-index:100}
         .right-group{background:rgba(10,10,20,.9);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:5px 3px;display:flex;flex-direction:column;gap:2px}
         .right-label{font-size:8px;color:#666;text-transform:uppercase;letter-spacing:1px;text-align:center;padding:2px 0}
         .emoji-btn{font-size:16px;cursor:pointer;padding:3px 5px;border-radius:6px;transition:.2s;text-align:center;position:relative;background:transparent;border:none;color:#fff}
-        .emoji-btn:hover{background:rgba(255,255,255,.12);transform:scale(1.15)}.emoji-btn.active{background:#6B4E9E}
-        .emoji-btn .etip{position:absolute;right:38px;background:#000;color:#fff;padding:2px 7px;border-radius:5px;font-size:8px;white-space:nowrap;pointer-events:none;opacity:0;transition:.2s}
-        .emoji-btn:hover .etip{opacity:1}
-        
+        .emoji-btn:hover{background:rgba(255,255,255,.12);transform:scale(1.15)}.emoji-btn.active{background:#6B4E9E}.emoji-btn .etip{position:absolute;right:38px;background:#000;color:#fff;padding:2px 7px;border-radius:5px;font-size:8px;white-space:nowrap;pointer-events:none;opacity:0;transition:.2s}.emoji-btn:hover .etip{opacity:1}
         .toolbar-bottom{position:fixed;bottom:0;left:0;right:0;z-index:100;background:rgba(10,10,20,.95);border-top:1px solid rgba(255,255,255,.08);padding:8px 14px;display:flex;align-items:center;gap:5px;justify-content:center;flex-wrap:wrap;min-height:48px}
         .btn-bottom{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);color:#ccc;padding:5px 10px;border-radius:12px;cursor:pointer;font-size:11px;font-family:inherit;transition:.2s;white-space:nowrap}
-        .btn-bottom:hover{background:#6B4E9E;color:#fff}.btn-bottom.active{background:#6B4E9E;color:#fff}
-        .btn-bottom.gold{border-color:rgba(230,200,138,.5);color:#e6c88a}.btn-bottom.gold:hover{background:#e6c88a;color:#121212}
-        .btn-bottom.purple{background:rgba(107,78,158,.15);border-color:rgba(107,78,158,.3)}.btn-bottom.purple:hover{background:#6B4E9E}
-        .btn-bottom.blue{background:rgba(91,141,239,.1);border-color:rgba(91,141,239,.2)}.btn-bottom.blue:hover{background:#5B8DEF}
+        .btn-bottom:hover{background:#6B4E9E;color:#fff}.btn-bottom.active{background:#6B4E9E;color:#fff}.btn-bottom.gold{border-color:rgba(230,200,138,.5);color:#e6c88a}.btn-bottom.gold:hover{background:#e6c88a;color:#121212}.btn-bottom.purple{background:rgba(107,78,158,.15);border-color:rgba(107,78,158,.3)}.btn-bottom.purple:hover{background:#6B4E9E}.btn-bottom.blue{background:rgba(91,141,239,.1);border-color:rgba(91,141,239,.2)}.btn-bottom.blue:hover{background:#5B8DEF}
         .separator{width:1px;height:18px;background:rgba(255,255,255,.08);margin:0 5px}
-        
         .info-text{position:fixed;top:50px;left:50%;transform:translateX(-50%);color:#e6c88a;font-size:12px;z-index:100;background:rgba(0,0,0,.7);padding:4px 12px;border-radius:12px;pointer-events:none;transition:.3s}
         .count-text{position:fixed;top:10px;right:20px;color:#fff;font-size:11px;z-index:100;background:rgba(0,0,0,.7);padding:4px 10px;border-radius:10px}
-        
         .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:500;align-items:center;justify-content:center;flex-direction:column;gap:12px}.overlay.show{display:flex}
         .overlay i{font-size:50px;color:#4CAF7A}.overlay h2{color:#fff;font-size:20px}.overlay p{color:#aaa;font-size:13px}.overlay button{background:#6B4E9E;color:#fff;padding:10px 24px;border-radius:20px;border:none;cursor:pointer;font-weight:600;font-family:inherit;font-size:14px;margin-top:10px}
-        
         .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:400;align-items:center;justify-content:center}.modal-overlay.show{display:flex}
-        .modal-box{background:#1a1a2e;border:1px solid #3a3a4a;border-radius:14px;padding:18px;width:310px}.modal-box h3{color:#e6c88a;font-size:13px;margin-bottom:10px}
-        .modal-box input,.modal-box select{width:100%;background:#0a0a14;border:1px solid #3a3a4a;border-radius:8px;padding:7px 10px;margin-bottom:7px;color:#fff;font-family:inherit;font-size:11px}
-        .modal-box select option{background:#1a1a2e;color:#fff}
-        .modal-buttons{display:flex;gap:5px;margin-top:6px}
-        .modal-buttons button{flex:1;padding:6px;border-radius:12px;border:none;cursor:pointer;font-weight:600;font-family:inherit;font-size:10px}
-        .btn-confirm{background:#6B4E9E;color:#fff}.btn-cancel{background:#3a3a4a;color:#fff}
-        
-        .loading-screen{position:fixed;inset:0;background:#0a0a14;z-index:999;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:10px}
-        .loading-screen .spinner{width:40px;height:40px;border:3px solid #333;border-top-color:#e6c88a;border-radius:50%;animation:spin .8s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}
-        .loading-screen p{color:#e6c88a;font-size:14px}
-        
+        .modal-box{background:#1a1a2e;border:1px solid #3a3a4a;border-radius:14px;padding:18px;width:310px}.modal-box h3{color:#e6c88a;font-size:13px;margin-bottom:10px}.modal-box input,.modal-box select{width:100%;background:#0a0a14;border:1px solid #3a3a4a;border-radius:8px;padding:7px 10px;margin-bottom:7px;color:#fff;font-family:inherit;font-size:11px}.modal-box select option{background:#1a1a2e;color:#fff}.modal-buttons{display:flex;gap:5px;margin-top:6px}.modal-buttons button{flex:1;padding:6px;border-radius:12px;border:none;cursor:pointer;font-weight:600;font-family:inherit;font-size:10px}.btn-confirm{background:#6B4E9E;color:#fff}.btn-cancel{background:#3a3a4a;color:#fff}
+        .loading-screen{position:fixed;inset:0;background:#0a0a14;z-index:999;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:10px}.loading-screen .spinner{width:40px;height:40px;border:3px solid #333;border-top-color:#e6c88a;border-radius:50%;animation:spin .8s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}.loading-screen p{color:#e6c88a;font-size:14px}
         .toast{position:fixed;bottom:60px;left:50%;transform:translateX(-50%);background:#6B4E9E;color:#fff;padding:5px 14px;border-radius:14px;font-size:10px;z-index:300;pointer-events:none;animation:fIn .3s}@keyframes fIn{from{opacity:0;transform:translateX(-50%) translateY(5px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
     </style>
 </head>
@@ -86,21 +61,19 @@
 </div>
 
 <div class="toolbar-right">
-    <div class="right-group">
-        <span class="right-label">Conexao</span>
-        <button class="emoji-btn" onclick="quickConnect('amor')" title="Amor">❤️<span class="etip">Amor</span></button>
-        <button class="emoji-btn" onclick="quickConnect('paz')" title="Paz">🕊️<span class="etip">Paz</span></button>
-        <button class="emoji-btn" onclick="quickConnect('conflito')" title="Conflito">⚡<span class="etip">Conflito</span></button>
-        <button class="emoji-btn" onclick="quickConnect('apoio')" title="Apoio">🤝<span class="etip">Apoio</span></button>
-        <button class="emoji-btn" onclick="quickConnect('ruptura')" title="Ruptura">💔<span class="etip">Ruptura</span></button>
-        <button class="emoji-btn" onclick="quickConnect('morte')" title="Luto">💀<span class="etip">Luto</span></button>
+    <div class="right-group"><span class="right-label">Conexao</span>
+        <button class="emoji-btn" onclick="quickConnect('amor')">❤️<span class="etip">Amor</span></button>
+        <button class="emoji-btn" onclick="quickConnect('paz')">🕊️<span class="etip">Paz</span></button>
+        <button class="emoji-btn" onclick="quickConnect('conflito')">⚡<span class="etip">Conflito</span></button>
+        <button class="emoji-btn" onclick="quickConnect('apoio')">🤝<span class="etip">Apoio</span></button>
+        <button class="emoji-btn" onclick="quickConnect('ruptura')">💔<span class="etip">Ruptura</span></button>
+        <button class="emoji-btn" onclick="quickConnect('morte')">💀<span class="etip">Luto</span></button>
     </div>
-    <div class="right-group">
-        <span class="right-label">Emocao</span>
-        <button class="emoji-btn" onclick="addEmocao('😢')" title="Tristeza">😢<span class="etip">Tristeza</span></button>
-        <button class="emoji-btn" onclick="addEmocao('🌟')" title="Cura">🌟<span class="etip">Cura</span></button>
-        <button class="emoji-btn" onclick="addEmocao('🔥')" title="Raiva">🔥<span class="etip">Raiva</span></button>
-        <button class="emoji-btn" onclick="addEmocao('🙏')" title="Gratidao">🙏<span class="etip">Gratidao</span></button>
+    <div class="right-group"><span class="right-label">Emocao</span>
+        <button class="emoji-btn" onclick="addEmocao('😢')">😢<span class="etip">Tristeza</span></button>
+        <button class="emoji-btn" onclick="addEmocao('🌟')">🌟<span class="etip">Cura</span></button>
+        <button class="emoji-btn" onclick="addEmocao('🔥')">🔥<span class="etip">Raiva</span></button>
+        <button class="emoji-btn" onclick="addEmocao('🙏')">🙏<span class="etip">Gratidao</span></button>
     </div>
 </div>
 
@@ -125,26 +98,7 @@
 
 <div class="overlay" id="overlayFinal"><i class="fas fa-check-circle"></i><h2>Constelacao Finalizada!</h2><p id="overlayMsg"></p><button onclick="voltarAoPainel()"><i class="fas fa-arrow-left"></i> Voltar ao Painel</button></div>
 
-<div class="modal-overlay" id="customModal">
-    <div class="modal-box">
-        <h3>Nova Pessoa</h3>
-        <input type="text" id="customName" placeholder="Nome">
-        <select id="customPertencimento">
-            <option value="familia_origem">🏠 Familia de Origem</option>
-            <option value="ancestrais">👴 Ancestrais</option>
-            <option value="familia_ampliada">👥 Familia Ampliada</option>
-            <option value="afetivo">💕 Afetivo</option>
-            <option value="social" selected>🤝 Social</option>
-            <option value="morte">💀 Morte</option>
-            <option value="excluidos">🚫 Excluidos</option>
-            <option value="outro">❓ Outro</option>
-        </select>
-        <div class="modal-buttons">
-            <button class="btn-confirm" onclick="confirmCustom()">Adicionar</button>
-            <button class="btn-cancel" onclick="closeCustomModal()">Cancelar</button>
-        </div>
-    </div>
-</div>
+<div class="modal-overlay" id="customModal"><div class="modal-box"><h3>Nova Pessoa</h3><input type="text" id="customName" placeholder="Nome"><select id="customPertencimento"><option value="familia_origem">🏠 Familia de Origem</option><option value="ancestrais">👴 Ancestrais</option><option value="familia_ampliada">👥 Familia Ampliada</option><option value="afetivo">💕 Afetivo</option><option value="social" selected>🤝 Social</option><option value="morte">💀 Morte</option><option value="excluidos">🚫 Excluidos</option><option value="outro">❓ Outro</option></select><div class="modal-buttons"><button class="btn-confirm" onclick="confirmCustom()">Adicionar</button><button class="btn-cancel" onclick="closeCustomModal()">Cancelar</button></div></div></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
@@ -163,7 +117,6 @@ var controls=new THREE.OrbitControls(camera,renderer.domElement);controls.enable
 addEventListener('resize',function(){camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);labelRenderer.setSize(innerWidth,innerHeight)});
 var FR=3.2,SCALE=0.75,membros=[],conexoes=[],historico=[],selecionado=null,modo='move',arrastando=null,contadorNomes={},idCounter=1,currentGender='masc',quickConnectMode=null,quickConnectOrigin=null;
 var connColors={amor:0xff5555,paz:0xffffff,conflito:0xff9933,apoio:0x55cc55,ruptura:0x888888,morte:0x666666};
-
 var ground=new THREE.Mesh(new THREE.CircleGeometry(FR+0.3,32),new THREE.MeshStandardMaterial({color:0x2a3a2a,roughness:0.5}));ground.rotation.x=-Math.PI/2;ground.position.y=-0.25;scene.add(ground);
 var rp=[];for(var i=0;i<=64;i++){var a=(i/64)*Math.PI*2;rp.push(new THREE.Vector3(Math.cos(a)*FR,0.02,Math.sin(a)*FR))}scene.add(new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(rp),new THREE.LineBasicMaterial({color:0xe6c88a})));
 [1.2,2.0,2.7].forEach(function(r){var ri=new THREE.Mesh(new THREE.TorusGeometry(r,0.04,64,200),new THREE.MeshStandardMaterial({color:0xe6c88a,emissive:0x332211}));ri.rotation.x=Math.PI/2;ri.position.y=-0.15;scene.add(ri)});
@@ -171,71 +124,53 @@ scene.add(new THREE.AmbientLight(0x4a5a4a,0.6));var lt=new THREE.DirectionalLigh
 
 function getCor(role){switch(role){case'eu':return 0xFFD700;case'pai':return 0x1a3a5c;case'mae':return 0x8B1A4A;case'filho':case'filha':return 0x4A90D9;case'irmao':case'irma':return 0x2E7D32;case'avo':case'avo-f':return 0x5D4037;case'marido':return 0x212121;case'esposa':return 0xF5F5F5;case'morto':return 0xB0BEC5;case'excluido':return 0x263238;default:return 0x6B4E9E}}
 
-function criarBoneco(nome,role,gender,x,z){
-    var g=new THREE.Group();var cor=getCor(role),skinColor=0xF5D0A9;
-    var isFemale=(gender==='fem'),isNeutro=(gender==='neutro'),isMorto=(role==='morto'),isExcluido=(role==='excluido');
-    if(isMorto){skinColor=0xCFD8DC;cor=0xB0BEC5}else if(isExcluido){skinColor=0x37474F;cor=0x263238}
-    var corpo=new THREE.Mesh(new THREE.CylinderGeometry(0.21,0.24,0.44,8),new THREE.MeshStandardMaterial({color:cor}));corpo.position.y=0.22;g.add(corpo);
-    var cabeca=new THREE.Mesh(new THREE.SphereGeometry(0.24,24,24),new THREE.MeshStandardMaterial({color:skinColor}));cabeca.position.y=0.48;g.add(cabeca);
-    var olhoMat=new THREE.MeshStandardMaterial({color:0x2a1a12}),le=new THREE.Mesh(new THREE.SphereGeometry(0.04,16),olhoMat),re=new THREE.Mesh(new THREE.SphereGeometry(0.04,16),olhoMat);le.position.set(-0.08,0.56,0.25);re.position.set(0.08,0.56,0.25);g.add(le,re);
-    if(isFemale){var hair=new THREE.Mesh(new THREE.CylinderGeometry(0.29,0.32,0.1,8),new THREE.MeshStandardMaterial({color:0x8B5A2B}));hair.position.y=0.6;g.add(hair)}
-    if(isMorto||isExcluido){var aura=new THREE.Mesh(new THREE.SphereGeometry(0.38,16,12),new THREE.MeshStandardMaterial({color:isMorto?0xDDDDDD:0x111111,roughness:0.2,transparent:true,opacity:0.35}));aura.position.y=0.3;g.add(aura)}
-    if(x!==undefined&&z!==undefined){g.position.set(x,-0.2,z)}else{var ang=Math.random()*Math.PI*2,raio=1.5+Math.random()*1.5;g.position.set(Math.cos(ang)*raio,-0.2,Math.sin(ang)*raio)}
-    var div=document.createElement('div');div.style.cssText='background:#1a1a2e;color:#e6c88a;padding:2px 10px;border-radius:12px;font-size:10px;font-weight:600;border:1px solid #e6c88a;white-space:nowrap';div.textContent=nome;
-    var lb=new THREE.CSS2DObject(div);lb.position.set(0,0.95,0);g.add(lb);g.userData={id:idCounter++,nome:nome,role:role,gender:gender,cor:cor};scene.add(g);return g}
+function criarBoneco(nome,role,gender,x,z){var g=new THREE.Group();var cor=getCor(role),skinColor=0xF5D0A9;var isFemale=(gender==='fem'),isMorto=(role==='morto'),isExcluido=(role==='excluido');if(isMorto){skinColor=0xCFD8DC;cor=0xB0BEC5}else if(isExcluido){skinColor=0x37474F;cor=0x263238}var corpo=new THREE.Mesh(new THREE.CylinderGeometry(0.21,0.24,0.44,8),new THREE.MeshStandardMaterial({color:cor}));corpo.position.y=0.22;g.add(corpo);var cabeca=new THREE.Mesh(new THREE.SphereGeometry(0.24,24,24),new THREE.MeshStandardMaterial({color:skinColor}));cabeca.position.y=0.48;g.add(cabeca);var olhoMat=new THREE.MeshStandardMaterial({color:0x2a1a12}),le=new THREE.Mesh(new THREE.SphereGeometry(0.04,16),olhoMat),re=new THREE.Mesh(new THREE.SphereGeometry(0.04,16),olhoMat);le.position.set(-0.08,0.56,0.25);re.position.set(0.08,0.56,0.25);g.add(le,re);if(isFemale){var hair=new THREE.Mesh(new THREE.CylinderGeometry(0.29,0.32,0.1,8),new THREE.MeshStandardMaterial({color:0x8B5A2B}));hair.position.y=0.6;g.add(hair)}if(isMorto||isExcluido){var aura=new THREE.Mesh(new THREE.SphereGeometry(0.38,16,12),new THREE.MeshStandardMaterial({color:isMorto?0xDDDDDD:0x111111,roughness:0.2,transparent:true,opacity:0.35}));aura.position.y=0.3;g.add(aura)}if(x!==undefined&&z!==undefined){g.position.set(x,-0.2,z)}else{var ang=Math.random()*Math.PI*2,raio=1.5+Math.random()*1.5;g.position.set(Math.cos(ang)*raio,-0.2,Math.sin(ang)*raio)}var div=document.createElement('div');div.style.cssText='background:#1a1a2e;color:#e6c88a;padding:2px 10px;border-radius:12px;font-size:10px;font-weight:600;border:1px solid #e6c88a;white-space:nowrap';div.textContent=nome;var lb=new THREE.CSS2DObject(div);lb.position.set(0,0.95,0);g.add(lb);g.userData={id:idCounter++,nome:nome,role:role,gender:gender,cor:cor};scene.add(g);return g}
 
 function addMembro(nome,role,x,z,gO){var gender=gO||currentGender;if(!contadorNomes[nome])contadorNomes[nome]=0;contadorNomes[nome]++;var nf=contadorNomes[nome]>1?nome+' '+contadorNomes[nome]:nome;var b=criarBoneco(nf,role,gender,x,z);membros.push(b);atualizarUI();mostrarMsg(nf+' adicionado(a)');salvarEstado();return b}
 
-function removerMembro(b){var i=membros.indexOf(b);if(i===-1)return;scene.remove(b);membros.splice(i,1);var nc=[];conexoes.forEach(function(c){if(c.a===b||c.b===b){if(c.line)scene.remove(c.line)}else{nc.push(c)}});conexoes=nc;if(selecionado===b)selecionado=null;atualizarUI();salvarEstado()}
+// ============ FUNCAO DE REMOVER CORRIGIDA ============
+function removerMembro(b){var i=membros.indexOf(b);if(i===-1)return;b.children.forEach(function(c){if(c.isEmoji||c.isGlow)b.remove(c)});scene.remove(b);membros.splice(i,1);for(var j=conexoes.length-1;j>=0;j--){if(conexoes[j].a===b||conexoes[j].b===b){if(conexoes[j].line){conexoes[j].line.geometry.dispose();scene.remove(conexoes[j].line)}conexoes.splice(j,1)}}if(selecionado===b)selecionado=null;if(quickConnectOrigin===b){quickConnectOrigin=null;quickConnectMode=null}atualizarUI();salvarEstado()}
+
+// ============ LIMPAR TUDO CORRIGIDO ============
+window.limparTudo=function(){if(!confirm('Limpar todos os membros e conexoes?'))return;salvarHistorico();for(var j=conexoes.length-1;j>=0;j--){if(conexoes[j].line){conexoes[j].line.geometry.dispose();scene.remove(conexoes[j].line)}conexoes.splice(j,1)}for(var i=membros.length-1;i>=0;i--){var m=membros[i];m.children.forEach(function(c){if(c.isEmoji||c.isGlow)m.remove(c)});scene.remove(m);membros.splice(i,1)}selecionado=null;quickConnectMode=null;quickConnectOrigin=null;contadorNomes={};idCounter=1;highlight(null);atualizarUI();salvarEstado();mostrarMsg('Circulo completamente limpo')};
+
+// ============ DESFAZER CORRIGIDO ============
+window.desfazer=function(){if(!historico.length)return;var ant=historico.pop();for(var j=conexoes.length-1;j>=0;j--){if(conexoes[j].line){conexoes[j].line.geometry.dispose();scene.remove(conexoes[j].line)}conexoes.splice(j,1)}for(var i=membros.length-1;i>=0;i--){var m=membros[i];m.children.forEach(function(c){if(c.isEmoji||c.isGlow)m.remove(c)});scene.remove(m);membros.splice(i,1)}selecionado=null;quickConnectMode=null;quickConnectOrigin=null;contadorNomes={};var mapa={};ant.membros.forEach(function(d){contadorNomes[d.nome]=(contadorNomes[d.nome]||0)+1;var b=criarBoneco(d.nome,d.role,d.gender||'masc',d.x,d.z);membros.push(b);mapa[d.id]=b});ant.conexoes.forEach(function(d){var a=mapa[d.a],b=mapa[d.b];if(a&&b)conectar(a,b,d.tipo||'default')});highlight(null);atualizarUI();salvarEstado();mostrarMsg('Desfeito')};
 
 function conectar(a,b,tipo){if(a===b)return;var ex=conexoes.find(function(c){return(c.a===a&&c.b===b)||(c.a===b&&c.b===a)});if(ex){if(ex.line){ex.line.geometry.dispose();scene.remove(ex.line)}conexoes=conexoes.filter(function(c){return c!==ex});atualizarConexoes();salvarEstado();mostrarMsg('Desconectado');return}var color=connColors[tipo]||0xe6c88a;var pts=[new THREE.Vector3(a.position.x,0.3,a.position.z),new THREE.Vector3(b.position.x,0.3,b.position.z)];var linha=new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts),new THREE.LineBasicMaterial({color:color}));scene.add(linha);conexoes.push({a:a,b:b,linha:linha,tipo:tipo});salvarEstado();mostrarMsg('Conectado!')}
-
 function atualizarConexoes(){conexoes.forEach(function(c){if(c.line){c.line.geometry.dispose();scene.remove(c.line)}var color=connColors[c.tipo]||0xe6c88a;var pts=[new THREE.Vector3(c.a.position.x,0.3,c.a.position.z),new THREE.Vector3(c.b.position.x,0.3,c.b.position.z)];c.line=new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts),new THREE.LineBasicMaterial({color:color}));scene.add(c.line)})}
-
 function atualizarUI(){document.getElementById('countText').textContent=membros.length+' membros'}
 function mostrarMsg(msg){var el=document.getElementById('infoText');el.textContent=msg;el.style.opacity='1';clearTimeout(el._t);el._t=setTimeout(function(){el.style.opacity='0.6'},2000)}
 function highlight(b){membros.forEach(function(m){m.children.forEach(function(c){if(c.isGlow)m.remove(c)})});if(b){var gl=new THREE.Mesh(new THREE.SphereGeometry(0.38,16),new THREE.MeshBasicMaterial({color:0xe6c88a,transparent:true,opacity:0.3}));gl.isGlow=true;gl.position.y=0.44;b.add(gl)}}
-
 function salvarEstado(){if(!UID)return;var estado={membros:membros.map(function(m){return{id:m.userData.id,nome:m.userData.nome,role:m.userData.role,gender:m.userData.gender,x:m.position.x,z:m.position.z}}),conexoes:conexoes.map(function(c){return{a:c.a.userData.id,b:c.b.userData.id,tipo:c.tipo}})};localStorage.setItem('salaEstado_'+UID,JSON.stringify(estado))}
 function salvarHistorico(){var snap={membros:membros.map(function(m){return{id:m.userData.id,nome:m.userData.nome,role:m.userData.role,gender:m.userData.gender,x:m.position.x,z:m.position.z}}),conexoes:conexoes.map(function(c){return{a:c.a.userData.id,b:c.b.userData.id,tipo:c.tipo}})};historico.push(snap);if(historico.length>30)historico.shift()}
 
-// ============ ACOES DOS BOTOES ============
 window.addMembroEspecial=function(nome,role){salvarHistorico();addMembro(nome,role)};
-window.addMembroManual=function(){var n=prompt('Nome do membro:');if(n&&n.trim()){salvarHistorico();addMembro(n.trim(),'custom')}};
 window.setGender=function(g,el){currentGender=g;document.querySelectorAll('[data-gender]').forEach(function(b){b.classList.remove('active')});el.classList.add('active')};
-window.limparTudo=function(){if(!confirm('Limpar todos?'))return;salvarHistorico();while(membros.length>0)removerMembro(membros[0]);mostrarMsg('Circulo limpo')};
 window.organizarCirculo=function(){salvarHistorico();membros.forEach(function(m,i){var a=(i/membros.length)*Math.PI*2;m.position.set(Math.cos(a)*2.2,-0.2,Math.sin(a)*2.2)});atualizarConexoes();salvarEstado();mostrarMsg('Circulo organizado')};
 window.tirarFoto=function(){renderer.render(scene,camera);var a=document.createElement('a');a.download='constelacao_'+Date.now()+'.png';a.href=renderer.domElement.toDataURL();a.click();mostrarMsg('Foto salva!')};
-window.toggleCamera=function(){cameraLocked=!cameraLocked;controls.enabled=!cameraLocked;document.getElementById('lockBtn').innerHTML=cameraLocked?'<i class="fas fa-unlock-alt"></i> Destravar':'<i class="fas fa-lock"></i> Travar';mostrarMsg(cameraLocked?'Camera travada':'Camera livre')};
+window.toggleCamera=function(){cameraLocked=!cameraLocked;controls.enabled=!cameraLocked;document.getElementById('lockBtn').innerHTML=cameraLocked?'<i class="fas fa-unlock-alt"></i> Destravar':'<i class="fas fa-lock"></i> Travar'};
 window.removerSelecionado=function(){if(selecionado){salvarHistorico();removerMembro(selecionado);selecionado=null;highlight(null);mostrarMsg('Removido')}};
-window.trocarSexo=function(){if(!selecionado)return;var g=selecionado;var ng=g.userData.gender==='masc'?'fem':g.userData.gender==='fem'?'neutro':'masc';var pos=g.position.clone();var{nome,role}=g.userData;removerMembro(g);salvarHistorico();var b=addMembro(nome,role,pos.x,pos.z,ng);selecionado=b;highlight(b);mostrarMsg('Sexo alterado para '+ng)};
+window.trocarSexo=function(){if(!selecionado)return;var g=selecionado;var ng=g.userData.gender==='masc'?'fem':g.userData.gender==='fem'?'neutro':'masc';var pos=g.position.clone();var nome=g.userData.nome,role=g.userData.role;removerMembro(g);salvarHistorico();var b=addMembro(nome,role,pos.x,pos.z,ng);selecionado=b;highlight(b);mostrarMsg('Sexo alterado para '+ng)};
 window.rotacionarSelecionado=function(){if(!selecionado)return;selecionado.rotation.y+=Math.PI/4;salvarHistorico();salvarEstado();mostrarMsg('Rotacionado')};
-
 window.quickConnect=function(tipo){quickConnectMode=tipo;quickConnectOrigin=selecionado;document.querySelectorAll('.emoji-btn').forEach(function(e){e.classList.remove('active')});if(selecionado)mostrarMsg('Selecione o segundo boneco para '+tipo);else mostrarMsg('Selecione um boneco primeiro')};
-window.addEmocao=function(ch){if(!selecionado)return;var old=selecionado.children.find(function(c){return c.isEmoji});if(old)selecionado.remove(old);var cv2=document.createElement('canvas');cv2.width=64;cv2.height=64;var cx=cv2.getContext('2d');cx.font='40px serif';cx.textAlign='center';cx.textBaseline='middle';cx.fillText(ch,32,32);var sp=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(cv2),transparent:true,depthTest:false}));sp.position.set(0,0.78,0);sp.scale.set(0.35,0.35,1);sp.isEmoji=true;sp.userData={ch:ch};selecionado.add(sp);salvarEstado();mostrarMsg(ch+' → '+selecionado.userData.nome)};
-window.addPertencia=function(tipo){if(!selecionado)return;var pos=selecionado.position.clone();var{nome}=selecionado.userData;removerMembro(selecionado);salvarHistorico();addMembro(nome,tipo,pos.x,pos.z);selecionado=null;highlight(null);mostrarMsg((tipo==='morto'?'Falecido':'Excluido')+': '+nome)};
-
-window.desfazer=function(){if(!historico.length)return;var ant=historico.pop();while(membros.length>0)removerMembro(membros[0]);var mapa={};ant.membros.forEach(function(d){contadorNomes[d.nome]=(contadorNomes[d.nome]||0)+1;var b=criarBoneco(d.nome,d.role,d.gender,d.x,d.z);membros.push(b);mapa[d.id]=b});ant.conexoes.forEach(function(d){var a=mapa[d.a],b=mapa[d.b];if(a&&b)conectar(a,b,d.tipo)});selecionado=null;highlight(null);atualizarUI();salvarEstado();mostrarMsg('Desfeito')};
+window.addEmocao=function(ch){if(!selecionado)return;var old=selecionado.children.find(function(c){return c.isEmoji});if(old)selecionado.remove(old);var cv2=document.createElement('canvas');cv2.width=64;cv2.height=64;var cx=cv2.getContext('2d');cx.font='40px serif';cx.textAlign='center';cx.textBaseline='middle';cx.fillText(ch,32,32);var sp=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(cv2),transparent:true,depthTest:false}));sp.position.set(0,0.78,0);sp.scale.set(0.35,0.35,1);sp.isEmoji=true;sp.userData={ch:ch};selecionado.add(sp);salvarEstado();mostrarMsg(ch+' -> '+selecionado.userData.nome)};
+window.addPertencia=function(tipo){if(!selecionado)return;var pos=selecionado.position.clone();var nome=selecionado.userData.nome;removerMembro(selecionado);salvarHistorico();addMembro(nome,tipo,pos.x,pos.z);selecionado=null;highlight(null);mostrarMsg((tipo==='morto'?'Falecido':'Excluido')+': '+nome)};
 window.setMode=function(m){modo=m;document.getElementById('btnMove').classList.toggle('active',m==='move')};
-
 window.openCustomModal=function(){document.getElementById('customModal').classList.add('show');document.getElementById('customName').value=''};
 window.closeCustomModal=function(){document.getElementById('customModal').classList.remove('show')};
 window.confirmCustom=function(){var n=document.getElementById('customName').value.trim();if(!n){mostrarMsg('Digite um nome');return}salvarHistorico();addMembro(n,'custom');closeCustomModal()};
-
 window.finalizarSessao=function(){document.getElementById('overlayMsg').textContent=membros.length+' membros | '+conexoes.length+' conexoes';document.getElementById('overlayFinal').classList.add('show')};
 window.voltarAoPainel=function(){if(window.opener&&window.opener.atualizarConstelacoesCB){window.opener.atualizarConstelacoesCB()}localStorage.setItem('sessaoFinalizada_'+UID,'true');localStorage.removeItem('sessaoConstelacao_'+UID);localStorage.removeItem('sessaoInicio_'+UID);localStorage.removeItem('salaEstado_'+UID);window.close()};
 window.salvarEstado=salvarEstado;
 
-// ============ MOUSE ============
 var raycaster=new THREE.Raycaster(),mouse=new THREE.Vector2();
 function gm(e){return{x:(e.clientX/innerWidth)*2-1,y:-(e.clientY/innerHeight)*2+1}}
 function gi(e){var m=gm(e);mouse.set(m.x,m.y);raycaster.setFromCamera(mouse,camera);var hits=raycaster.intersectObjects(membros,true);if(hits.length>0){var o=hits[0].object;while(o&&membros.indexOf(o)===-1)o=o.parent;return o||null}return null}
 renderer.domElement.addEventListener('mousedown',function(e){if(modo!=='move')return;arrastando=gi(e)});
 addEventListener('mousemove',function(e){if(!arrastando)return;var m=gm(e);mouse.set(m.x,m.y);raycaster.setFromCamera(mouse,camera);var plano=new THREE.Plane(new THREE.Vector3(0,1,0),-0.2),pt=new THREE.Vector3();if(raycaster.ray.intersectPlane(plano,pt)){var d=Math.sqrt(pt.x*pt.x+pt.z*pt.z);if(d>FR-0.3){var a=Math.atan2(pt.z,pt.x);pt.x=Math.cos(a)*(FR-0.3);pt.z=Math.sin(a)*(FR-0.3)}arrastando.position.x=pt.x;arrastando.position.z=pt.z;atualizarConexoes()}});
 addEventListener('mouseup',function(){if(arrastando){salvarHistorico();salvarEstado()}arrastando=null});
-renderer.domElement.addEventListener('click',function(e){if(arrastando)return;var o=gi(e);if(o&&modo==='move'){
-    if(quickConnectMode){if(quickConnectOrigin&&quickConnectOrigin!==o){conectar(quickConnectOrigin,o,quickConnectMode);quickConnectMode=null;quickConnectOrigin=null;selecionado=null;highlight(null);document.querySelectorAll('.emoji-btn').forEach(function(el){el.classList.remove('active')});return}else{quickConnectOrigin=o;mostrarMsg('Origem: '+o.userData.nome+' - Selecione o destino');return}}
-    if(selecionado&&selecionado!==o){conectar(selecionado,o,'default');selecionado=null;highlight(null)}else{selecionado=o;highlight(o);mostrarMsg(o.userData.nome+' selecionado')}}else{selecionado=null;highlight(null);if(!o&&!quickConnectMode)mostrarMsg('Clique em um boneco')}});
+renderer.domElement.addEventListener('click',function(e){if(arrastando)return;var o=gi(e);if(o&&modo==='move'){if(quickConnectMode){if(quickConnectOrigin&&quickConnectOrigin!==o){conectar(quickConnectOrigin,o,quickConnectMode);quickConnectMode=null;quickConnectOrigin=null;selecionado=null;highlight(null);document.querySelectorAll('.emoji-btn').forEach(function(el){el.classList.remove('active')});return}else{quickConnectOrigin=o;mostrarMsg('Origem: '+o.userData.nome+' - Selecione o destino');return}}if(selecionado&&selecionado!==o){conectar(selecionado,o,'default');selecionado=null;highlight(null)}else{selecionado=o;highlight(o);mostrarMsg(o.userData.nome+' selecionado')}}else{selecionado=null;highlight(null);if(!o&&!quickConnectMode)mostrarMsg('Clique em um boneco')}});
 renderer.domElement.addEventListener('touchstart',function(e){if(modo!=='move')return;e.preventDefault();arrastando=gi(e.touches[0])},{passive:false});
 addEventListener('touchmove',function(e){if(!arrastando)return;e.preventDefault();var m=gm(e.touches[0]);mouse.set(m.x,m.y);raycaster.setFromCamera(mouse,camera);var plano=new THREE.Plane(new THREE.Vector3(0,1,0),-0.2),pt=new THREE.Vector3();if(raycaster.ray.intersectPlane(plano,pt)){var d=Math.sqrt(pt.x*pt.x+pt.z*pt.z);if(d>FR-0.3){var a=Math.atan2(pt.z,pt.x);pt.x=Math.cos(a)*(FR-0.3);pt.z=Math.sin(a)*(FR-0.3)}arrastando.position.x=pt.x;arrastando.position.z=pt.z;atualizarConexoes()}},{passive:false});
 addEventListener('touchend',function(){if(arrastando){salvarHistorico();salvarEstado()}arrastando=null});
