@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SYNAPSE - Administrador</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="loading" id="loading"><div class="spinner"></div></div>
+
+<header class="mobile-header">
+    <div class="brand"><i class="fas fa-brain" style="color:#6B4E9E;font-size:20px"></i><span style="color:#fff">SYNAPSE</span></div>
+    <button class="menu-btn" onclick="toggleSidebar()">☰</button>
+</header>
+<div class="sidebar-overlay" onclick="closeSidebar()"></div>
+
+<nav class="sidebar">
+    <div class="sidebar-logo"><i class="fas fa-brain"></i><span>SYNAPSE</span></div>
+    <div class="sidebar-user"><div class="sidebar-avatar">A</div><div class="sidebar-user-info"><div class="sidebar-user-name">Administrador</div><div class="sidebar-user-role">Admin</div></div></div>
+    <div class="sidebar-nav" id="sidebarNav">
+        <button class="active" data-section="dashboard"><i class="fas fa-home"></i>Painel</button>
+        <button data-section="terapeutas"><i class="fas fa-users"></i>Terapeutas</button>
+        <button data-section="recargas"><i class="fas fa-coins"></i>Recargas</button>
+        <button data-section="planos"><i class="fas fa-crown"></i>Planos</button>
+        <button data-section="backup"><i class="fas fa-database"></i>Backup</button>
+        <button data-section="perfil"><i class="fas fa-user-cog"></i>Conta</button>
+    </div>
+    <div class="sidebar-footer"><button onclick="logout()"><i class="fas fa-sign-out-alt"></i> Sair</button></div>
+</nav>
+
+<main class="main">
+    <header class="header"><div class="header-left"><h1>Administracao</h1><p>Gerencie terapeutas, recargas e planos</p></div></header>
+    <div class="content">
+        <div id="section-dashboard">
+            <div class="stats-grid">
+                <div class="stat-card stat-purple"><div class="stat-icon"><i class="fas fa-users"></i></div><div class="stat-info"><div class="stat-label">Terapeutas Ativos</div><div class="stat-value" id="dashTerapeutas">0</div></div></div>
+                <div class="stat-card stat-gold"><div class="stat-icon"><i class="fas fa-clock"></i></div><div class="stat-info"><div class="stat-label">Recargas Pendentes</div><div class="stat-value" id="dashPendentes">0</div></div></div>
+                <div class="stat-card stat-green"><div class="stat-icon"><i class="fas fa-check-circle"></i></div><div class="stat-info"><div class="stat-label">Recargas Aprovadas</div><div class="stat-value" id="dashAprovadas">0</div></div></div>
+                <div class="stat-card stat-purple"><div class="stat-icon"><i class="fas fa-coins"></i></div><div class="stat-info"><div class="stat-label">Receita Total</div><div class="stat-value" id="dashReceita">R$ 0</div></div></div>
+            </div>
+        </div>
+        <div id="section-terapeutas" class="hidden"><h2>Terapeutas</h2><button class="btn btn-primary" onclick="openModal('modalTerapeuta')" style="margin-bottom:12px"><i class="fas fa-plus"></i> Novo Terapeuta</button><div class="table-container"><table><thead><tr><th>Nome</th><th>Email</th><th>Coins</th><th>Const.</th><th>Status</th><th>Ações</th></tr></thead><tbody id="tabelaTerapeutas"></tbody></table></div></div>
+        <div id="section-recargas" class="hidden"><h2>Recargas</h2><div class="stats-grid" style="margin-bottom:16px"><div class="stat-card stat-gold"><div class="stat-icon"><i class="fas fa-clock"></i></div><div class="stat-info"><div class="stat-label">Pendentes</div><div class="stat-value" id="recPendentes">0</div></div></div><div class="stat-card stat-green"><div class="stat-icon"><i class="fas fa-check-circle"></i></div><div class="stat-info"><div class="stat-label">Aprovadas</div><div class="stat-value" id="recAprovadas">0</div></div></div></div><h3 style="margin-bottom:8px">Solicitações Pendentes</h3><div class="table-container"><table><thead><tr><th>Data</th><th>Terapeuta</th><th>Plano</th><th>Coins</th><th>Valor</th><th>Ações</th></tr></thead><tbody id="tabelaSolicitacoes"></tbody></table></div></div>
+        <div id="section-planos" class="hidden"><h2>Planos</h2><button class="btn btn-primary" onclick="abrirModalPlano()" style="margin-bottom:12px"><i class="fas fa-plus"></i> Novo Plano</button><div class="table-container"><table><thead><tr><th>Plano</th><th>Tipo</th><th>Coins</th><th>Preço</th><th>Status</th><th>Ações</th></tr></thead><tbody id="tabelaPlanos"></tbody></table></div></div>
+        <div id="section-backup" class="hidden"><h2>Backup</h2><div style="display:flex;gap:12px"><button class="btn btn-primary" onclick="fazerBackup()"><i class="fas fa-download"></i> Exportar Backup</button><button class="btn btn-outline" onclick="restaurarBackup()"><i class="fas fa-upload"></i> Restaurar Backup</button></div></div>
+        <div id="section-perfil" class="hidden"><h2>Conta</h2><div class="form-group"><label>Nome</label><input type="text" id="adminNome" value="Administrador"></div><div class="form-group"><label>Nova Senha</label><input type="password" id="novaSenha" placeholder="Deixe em branco para manter"></div><div class="form-group"><label>Confirmar Senha</label><input type="password" id="confirmaSenha" placeholder="Confirme a nova senha"></div><button class="btn btn-primary" onclick="alterarSenha()"><i class="fas fa-key"></i> Alterar Senha</button></div>
+    </div>
+</main>
+
+<div id="modalTerapeuta" class="modal"><div class="modal-content"><div class="modal-header"><h3 id="modalTerapeutaTitle"><i class="fas fa-user-plus"></i> Novo Terapeuta</h3><button class="modal-close" onclick="closeModal('modalTerapeuta')">&times;</button></div><form id="formTerapeuta"><input type="hidden" id="editTerapeutaId"><div class="form-group"><label>Nome</label><input type="text" id="tNome" required></div><div class="form-group"><label>Email</label><input type="email" id="tEmail" required></div><div class="form-group"><label>Telefone</label><input type="text" id="tTelefone"></div><div class="form-group"><label>Senha</label><input type="password" id="tSenha" placeholder="Mínimo 6 caracteres"></div><div class="form-group"><label>Plano</label><select id="tPlano"><option value="">Sem plano</option></select></div><div class="form-group"><label>Status</label><select id="tStatus"><option value="ativo">Ativo</option><option value="inativo">Inativo</option></select></div><button type="submit" class="btn btn-primary" style="width:100%">Salvar</button></form></div></div>
+
+<div id="modalPlano" class="modal"><div class="modal-content"><div class="modal-header"><h3 id="modalPlanoTitle"><i class="fas fa-crown"></i> Novo Plano</h3><button class="modal-close" onclick="closeModal('modalPlano')">&times;</button></div><form id="formPlano"><input type="hidden" id="editPlanoId"><div class="form-group"><label>Nome</label><input type="text" id="pNome" required></div><div class="form-group"><label>Tipo</label><select id="pTipo"><option value="avulso">Avulso</option><option value="mensal">Mensal</option></select></div><div class="form-row"><div class="form-group"><label>Coins</label><input type="number" id="pCoins" required></div><div class="form-group"><label>Preço R$</label><input type="number" id="pPreco" step="0.01" required></div></div><div class="form-group"><label>Status</label><select id="pStatus"><option value="ativo">Ativo</option><option value="inativo">Inativo</option></select></div><button type="submit" class="btn btn-primary" style="width:100%">Salvar</button></form></div></div>
+
+<script src="supabase.js"></script>
+<script>
+if (!verificarSessao('admin')) throw new Error('Sessão inválida');
+
+let terapeutas = [], solicitacoes = [], planos = [];
+
+document.querySelectorAll('#sidebarNav button').forEach(btn => { btn.addEventListener('click', function() {
+    document.querySelectorAll('#sidebarNav button').forEach(b => b.classList.remove('active'));
+    this.classList.add('active');
+    const s = this.dataset.section;
+    document.querySelectorAll('[id^="section-"]').forEach(x => x.classList.add('hidden'));
+    const t = $('section-' + s); if (t) t.classList.remove('hidden');
+    if (window.innerWidth <= 768) closeSidebar();
+    const actions = { dashboard: carregarDashboard, terapeutas: carregarTerapeutas, recargas: carregarRecargas, planos: carregarPlanos, perfil: carregarPerfil };
+    if (actions[s]) actions[s]();
+})});
+
+function toggleSidebar() { document.querySelector('.sidebar').classList.toggle('open'); document.querySelector('.sidebar-overlay').classList.toggle('show'); }
+function closeSidebar() { document.querySelector('.sidebar').classList.remove('open'); document.querySelector('.sidebar-overlay').classList.remove('show'); }
+
+async function carregarDashboard() {
+    const [t, s, p] = await Promise.all([
+        sb.from('terapeutas').select('id', { count: 'exact', head: true }).eq('status', 'ativo').neq('email', 'admin@synapse.com'),
+        sb.from('solicitacoes_recarga').select('id', { count: 'exact', head: true }).eq('status', 'pendente'),
+        sb.from('solicitacoes_recarga').select('valor').eq('status', 'aprovada')
+    ]);
+    $('dashTerapeutas').textContent = t.count || 0;
+    $('dashPendentes').textContent = s.count || 0;
+    $('dashAprovadas').textContent = (p.data || []).length;
+    $('dashReceita').textContent = 'R$ ' + (p.data || []).reduce((sum, r) => sum + (r.valor || 0), 0).toFixed(2);
+}
+
+async function carregarTerapeutas() {
+    showLoading();
+    const { data } = await sb.from('terapeutas').select('*').order('nome');
+    terapeutas = data || [];
+    $('tabelaTerapeutas').innerHTML = terapeutas.length === 0 ? '<tr><td colspan="6" class="empty-state">Nenhum terapeuta</td></tr>' : terapeutas.map(t => {
+        const isAdmin = t.email === 'admin@synapse.com';
+        const p = planos.find(x => x.id === t.plano_id);
+        return `<tr><td><strong>${t.nome}</strong></td><td>${t.email}</td><td>💰 ${t.saldo || 0}</td><td>✨ ${t.constelacoes_realizadas || 0}</td><td><span class="badge ${t.status === 'ativo' ? 'badge-success' : 'badge-warning'}">${t.status === 'ativo' ? 'Ativo' : 'Inativo'}</span></td><td>${isAdmin ? '<span class="badge badge-purple">Admin</span>' : `<div class="action-group"><button class="btn btn-outline btn-xs" onclick="editarTerapeuta('${t.id}')"><i class="fas fa-edit"></i></button><button class="btn btn-outline btn-xs" onclick="toggleTerapeuta('${t.id}')"><i class="fas fa-${t.status === 'ativo' ? 'ban' : 'check-circle'}"></i></button><button class="btn btn-danger btn-xs" onclick="excluirTerapeuta('${t.id}')"><i class="fas fa-trash-alt"></i></button></div>`}</td></tr>`;
+    }).join('');
+    await carregarPlanos();
+    hideLoading();
+}
+
+async function salvarTerapeuta(e) {
+    e.preventDefault();
+    const id = $('editTerapeutaId').value;
+    const d = { nome: $('tNome').value, email: $('tEmail').value, telefone: $('tTelefone').value, status: $('tStatus').value, plano_id: $('tPlano').value || null };
+    const senha = $('tSenha').value;
+    if (senha && senha.length < 6) { toast('Senha deve ter no mínimo 6 caracteres'); return; }
+    showLoading();
+    if (id) { await sb.from('terapeutas').update(d).eq('id', id); if (senha) await sb.from('terapeutas').update({ senha }).eq('id', id); }
+    else { d.senha = senha || '123456'; d.saldo = 0; d.constelacoes_realizadas = 0; await sb.from('terapeutas').insert([d]); }
+    hideLoading(); closeModal('modalTerapeuta'); $('formTerapeuta').reset(); carregarTerapeutas(); carregarDashboard();
+    toast(id ? 'Terapeuta atualizado!' : 'Terapeuta cadastrado!');
+}
+
+async function editarTerapeuta(id) {
+    const t = terapeutas.find(x => x.id == id); if (!t) return;
+    $('modalTerapeutaTitle').innerHTML = '<i class="fas fa-edit"></i> Editar Terapeuta';
+    $('editTerapeutaId').value = t.id; $('tNome').value = t.nome; $('tEmail').value = t.email;
+    $('tTelefone').value = t.telefone || ''; $('tSenha').value = ''; $('tStatus').value = t.status;
+    popularSelectPlanos(t.plano_id);
+    openModal('modalTerapeuta');
+}
+
+async function toggleTerapeuta(id) { const t = terapeutas.find(x => x.id == id); if (!t) return; await sb.from('terapeutas').update({ status: t.status === 'ativo' ? 'inativo' : 'ativo' }).eq('id', id); carregarTerapeutas(); }
+async function excluirTerapeuta(id) { if (!confirm('Excluir este terapeuta?')) return; showLoading(); await sb.from('terapeutas').delete().eq('id', id); hideLoading(); carregarTerapeutas(); carregarDashboard(); }
+
+async function carregarRecargas() {
+    showLoading();
+    const { data } = await sb.from('solicitacoes_recarga').select('*').order('data_solicitacao', { ascending: false });
+    solicitacoes = data || [];
+    const pendentes = solicitacoes.filter(s => s.status === 'pendente');
+    $('recPendentes').textContent = pendentes.length;
+    $('recAprovadas').textContent = solicitacoes.filter(s => s.status === 'aprovada').length;
+    $('tabelaSolicitacoes').innerHTML = pendentes.length === 0 ? '<tr><td colspan="6" class="empty-state">Nenhuma solicitação pendente</td></tr>' : pendentes.map(s => `<tr><td>${new Date(s.data_solicitacao).toLocaleDateString('pt-BR')}</td><td>${s.terapeuta_nome}</td><td>${s.plano_nome}</td><td>💰 ${s.qtd_coins}</td><td>R$ ${s.valor.toFixed(2)}</td><td><div class="action-group"><button class="btn btn-success btn-xs" onclick="aprovarRecarga('${s.id}')"><i class="fas fa-check"></i> Aprovar</button><button class="btn btn-danger btn-xs" onclick="recusarRecarga('${s.id}')"><i class="fas fa-times"></i> Recusar</button></div></td></tr>`).join('');
+    hideLoading();
+}
+
+async function aprovarRecarga(id) {
+    const s = solicitacoes.find(x => x.id == id); if (!s) return;
+    const { data: t } = await sb.from('terapeutas').select('saldo').eq('id', s.terapeuta_id).single();
+    const novoSaldo = (t?.saldo || 0) + s.qtd_coins;
+    showLoading();
+    await sb.from('terapeutas').update({ saldo: novoSaldo, plano_id: s.plano_id || null }).eq('id', s.terapeuta_id);
+    await sb.from('solicitacoes_recarga').update({ status: 'aprovada' }).eq('id', id);
+    hideLoading(); carregarRecargas(); carregarDashboard(); carregarTerapeutas();
+    toast(`✅ +${s.qtd_coins} Coins para ${s.terapeuta_nome}`);
+}
+async function recusarRecarga(id) { showLoading(); await sb.from('solicitacoes_recarga').update({ status: 'recusada' }).eq('id', id); hideLoading(); carregarRecargas(); carregarDashboard(); toast('Solicitação recusada'); }
+
+async function carregarPlanos() {
+    const { data } = await sb.from('planos').select('*').order('preco');
+    planos = data || [];
+    $('tabelaPlanos').innerHTML = planos.length === 0 ? '<tr><td colspan="6" class="empty-state">Nenhum plano</td></tr>' : planos.map(p => `<tr><td><strong>${p.nome}</strong></td><td>${p.tipo}</td><td>💰 ${p.coins}</td><td>R$ ${p.preco.toFixed(2)}</td><td><span class="badge ${p.status === 'ativo' ? 'badge-success' : 'badge-warning'}">${p.status === 'ativo' ? 'Ativo' : 'Inativo'}</span></td><td><div class="action-group"><button class="btn btn-outline btn-xs" onclick="editarPlano('${p.id}')"><i class="fas fa-edit"></i></button><button class="btn btn-outline btn-xs" onclick="togglePlano('${p.id}')"><i class="fas fa-power-off"></i></button><button class="btn btn-danger btn-xs" onclick="excluirPlano('${p.id}')"><i class="fas fa-trash-alt"></i></button></div></td></tr>`).join('');
+    popularSelectPlanos();
+}
+
+function popularSelectPlanos(selectedId) {
+    const s = $('tPlano');
+    if (!s) return;
+    s.innerHTML = '<option value="">Sem plano</option>' + planos.filter(p => p.status === 'ativo').map(p => `<option value="${p.id}" ${p.id === selectedId ? 'selected' : ''}>${p.nome} (${p.coins} Coins - R$ ${p.preco.toFixed(2)})</option>`).join('');
+}
+
+function abrirModalPlano(id) {
+    if (id) {
+        const p = planos.find(x => x.id == id); if (!p) return;
+        $('modalPlanoTitle').innerHTML = '<i class="fas fa-edit"></i> Editar Plano';
+        $('editPlanoId').value = p.id; $('pNome').value = p.nome; $('pTipo').value = p.tipo;
+        $('pCoins').value = p.coins; $('pPreco').value = p.preco; $('pStatus').value = p.status;
+    } else {
+        $('modalPlanoTitle').innerHTML = '<i class="fas fa-crown"></i> Novo Plano';
+        $('editPlanoId').value = ''; $('pNome').value = ''; $('pTipo').value = 'avulso';
+        $('pCoins').value = ''; $('pPreco').value = ''; $('pStatus').value = 'ativo';
+    }
+    openModal('modalPlano');
+}
+
+async function salvarPlano(e) {
+    e.preventDefault();
+    const id = $('editPlanoId').value;
+    const d = { nome: $('pNome').value, tipo: $('pTipo').value, coins: parseInt($('pCoins').value) || 0, preco: parseFloat($('pPreco').value) || 0, status: $('pStatus').value };
+    showLoading();
+    if (id) await sb.from('planos').update(d).eq('id', id);
+    else await sb.from('planos').insert([d]);
+    hideLoading(); closeModal('modalPlano'); $('formPlano').reset(); carregarPlanos();
+    toast(id ? 'Plano atualizado!' : 'Plano criado!');
+}
+
+async function editarPlano(id) { abrirModalPlano(id); }
+async function togglePlano(id) { const p = planos.find(x => x.id == id); if (!p) return; await sb.from('planos').update({ status: p.status === 'ativo' ? 'inativo' : 'ativo' }).eq('id', id); carregarPlanos(); }
+async function excluirPlano(id) { if (!confirm('Excluir este plano?')) return; showLoading(); await sb.from('planos').delete().eq('id', id); hideLoading(); carregarPlanos(); }
+
+async function carregarPerfil() { $('adminNome').value = 'Administrador'; }
+async function alterarSenha() {
+    const s = $('novaSenha').value, c = $('confirmaSenha').value;
+    if (!s) { toast('Digite a nova senha'); return; }
+    if (s !== c) { toast('Senhas não conferem'); return; }
+    if (s.length < 6) { toast('Mínimo 6 caracteres'); return; }
+    const { data } = await sb.from('terapeutas').select('id').eq('email', 'admin@synapse.com').single();
+    if (data) { await sb.from('terapeutas').update({ senha: s }).eq('id', data.id); toast('Senha alterada!'); $('novaSenha').value = ''; $('confirmaSenha').value = ''; }
+}
+
+function fazerBackup() {
+    const backup = { terapeutas, solicitacoes, planos, data: new Date().toISOString() };
+    const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+    a.download = `synapse_backup_${new Date().toISOString().slice(0, 10)}.json`; a.click();
+    toast('Backup exportado!');
+}
+
+async function restaurarBackup() {
+    const input = document.createElement('input'); input.type = 'file'; input.accept = '.json';
+    input.onchange = async function(e) {
+        const file = e.target.files[0]; if (!file) return;
+        if (!confirm('Restaurar backup? Dados atuais serão substituídos.')) return;
+        const reader = new FileReader();
+        reader.onload = async function(ev) {
+            try {
+                const d = JSON.parse(ev.target.result);
+                showLoading();
+                for (const p of (d.planos || [])) { try { await sb.from('planos').insert(p); } catch(ex) {} }
+                for (const t of (d.terapeutas || [])) { try { await sb.from('terapeutas').insert(t); } catch(ex) {} }
+                for (const s of (d.solicitacoes || [])) { try { await sb.from('solicitacoes_recarga').insert(s); } catch(ex) {} }
+                hideLoading(); carregarDashboard(); carregarTerapeutas(); carregarRecargas(); carregarPlanos();
+                toast('Backup restaurado!');
+            } catch(ex) { hideLoading(); alert('Erro ao restaurar'); }
+        };
+        reader.readAsText(file);
+    };
+    input.click();
+}
+
+$('formTerapeuta').addEventListener('submit', salvarTerapeuta);
+$('formPlano').addEventListener('submit', salvarPlano);
+
+const origOpenModal = openModal;
+openModal = function(id) {
+    origOpenModal(id);
+    if (id === 'modalTerapeuta' && !$('editTerapeutaId').value) {
+        $('modalTerapeutaTitle').innerHTML = '<i class="fas fa-user-plus"></i> Novo Terapeuta';
+        $('editTerapeutaId').value = ''; $('tNome').value = ''; $('tEmail').value = ''; $('tTelefone').value = '';
+        $('tSenha').value = ''; $('tStatus').value = 'ativo';
+        popularSelectPlanos();
+    }
+};
+
+carregarDashboard();
+carregarTerapeutas();
+carregarRecargas();
+carregarPlanos();
+</script>
+</body>
+</html>
