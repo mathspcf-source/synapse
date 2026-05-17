@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SYNAPSE - Terapeuta</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/renderers/CSS2DRenderer.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="loading" id="loading"><div class="spinner"></div></div>
+
+<header class="mobile-header">
+    <div class="brand"><i class="fas fa-brain" style="color:#6B4E9E;font-size:20px"></i><span style="color:#fff">SYNAPSE</span></div>
+    <button class="menu-btn" onclick="toggleSidebar()">☰</button>
+</header>
+<div class="sidebar-overlay" onclick="closeSidebar()"></div>
+
+<nav class="sidebar">
+    <div class="sidebar-logo"><i class="fas fa-brain"></i><span>SYNAPSE</span></div>
+    <div class="sidebar-user"><div class="sidebar-avatar" id="sidebarAvatar">T</div><div class="sidebar-user-info"><div class="sidebar-user-name" id="sidebarNome">Terapeuta</div><div class="sidebar-user-role"><span id="sidebarCoins">0</span> Coins</div></div></div>
+    <div class="sidebar-nav" id="sidebarNav">
+        <button class="active" data-section="inicio"><i class="fas fa-home"></i>Início</button>
+        <button data-section="clientes"><i class="fas fa-address-book"></i>Clientes</button>
+        <button data-section="agenda"><i class="fas fa-calendar-check"></i>Agenda</button>
+        <button data-section="prontuarios"><i class="fas fa-clipboard-list"></i>Prontuários</button>
+        <button data-section="sala"><i class="fas fa-cube"></i>Sala 3D <span style="margin-left:auto;font-size:9px;background:rgba(230,200,138,.2);color:#e6c88a;padding:2px 7px;border-radius:10px" id="sideSessao"></span></button>
+        <button data-section="planos"><i class="fas fa-crown"></i>Planos</button>
+        <button data-section="perfil"><i class="fas fa-user-cog"></i>Perfil</button>
+    </div>
+    <div class="sidebar-footer"><button onclick="logout()"><i class="fas fa-sign-out-alt"></i> Sair</button></div>
+</nav>
+
+<main class="main">
+    <header class="header"><div class="header-left"><h1 id="headerTitle">Início</h1><p id="headerDesc"></p></div><div class="header-right"><div class="stat-card stat-gold" style="padding:8px 14px;gap:8px"><div class="stat-icon" style="width:32px;height:32px"><i class="fas fa-coins" style="font-size:14px"></i></div><div class="stat-info"><div class="stat-label">Synapse Coins</div><div class="stat-value" style="font-size:18px" id="headerCoins">0</div></div></div></div></header>
+    <div class="content">
+        <div id="section-inicio">
+            <div class="stats-grid">
+                <div class="stat-card stat-purple" onclick="navSection('sala')"><div class="stat-icon"><i class="fas fa-cube"></i></div><div class="stat-info"><div class="stat-label">Constelações</div><div class="stat-value" id="statConstelacoes">0</div></div></div>
+                <div class="stat-card stat-green" onclick="navSection('clientes')"><div class="stat-icon"><i class="fas fa-users"></i></div><div class="stat-info"><div class="stat-label">Clientes</div><div class="stat-value" id="statClientes">0</div></div></div>
+                <div class="stat-card stat-gold" onclick="navSection('agenda')"><div class="stat-icon"><i class="fas fa-calendar-check"></i></div><div class="stat-info"><div class="stat-label">Agendados</div><div class="stat-value" id="statAgendados">0</div></div></div>
+                <div class="stat-card stat-purple" onclick="navSection('prontuarios')"><div class="stat-icon"><i class="fas fa-clipboard-list"></i></div><div class="stat-info"><div class="stat-label">Prontuários</div><div class="stat-value" id="statProntuarios">0</div></div></div>
+            </div>
+        </div>
+        <div id="section-clientes" class="hidden"><h2>Clientes</h2><button class="btn btn-primary" onclick="abrirModalCliente()" style="margin-bottom:12px"><i class="fas fa-plus"></i> Novo Cliente</button><div class="table-container"><table><thead><tr><th>Nome</th><th>Telefone</th><th>Email</th><th>Const.</th><th>Ações</th></tr></thead><tbody id="tabelaClientes"></tbody></table></div></div>
+        <div id="section-agenda" class="hidden"><h2>Agenda</h2><button class="btn btn-primary" onclick="abrirModalAgendamento()" style="margin-bottom:12px"><i class="fas fa-plus"></i> Novo Agendamento</button><div id="listaAgendamentos"></div></div>
+        <div id="section-prontuarios" class="hidden"><h2>Prontuários</h2><button class="btn btn-primary" onclick="abrirModalProntuario()" style="margin-bottom:12px"><i class="fas fa-plus"></i> Novo Prontuário</button><div id="listaProntuarios"></div></div>
+        <div id="section-sala" class="hidden">
+            <div class="stat-card stat-purple" style="flex-direction:column;align-items:center;text-align:center;padding:40px;cursor:pointer" onclick="abrirSala3D()">
+                <div class="stat-icon" style="width:64px;height:64px;margin-bottom:12px"><i class="fas fa-cube" style="font-size:28px"></i></div>
+                <h3>Sala de Constelação 3D</h3>
+                <p style="font-size:11px;color:var(--text-light);margin:8px 0">💰 1 Synapse Coin por constelação | ⏱️ 2 horas de sessão</p>
+                <button class="btn btn-primary" id="btnSala" style="margin-top:8px"><i class="fas fa-vr-cardboard"></i> <span id="btnSalaTexto">Iniciar Nova Constelação</span></button>
+                <div id="sessaoInfo" style="margin-top:12px"></div>
+            </div>
+        </div>
+        <div id="section-planos" class="hidden"><h2>Planos Disponíveis</h2><div class="stats-grid" id="planosGrid"></div></div>
+        <div id="section-perfil" class="hidden"><h2>Meus Dados</h2><div class="form-group"><label>Nome</label><input type="text" id="perfilNome" disabled></div><div class="form-group"><label>Email</label><input type="email" id="perfilEmail" disabled></div><div class="form-group"><label>Telefone</label><input type="text" id="perfilTelefone"></div><div class="form-group"><label>Nova Senha</label><input type="password" id="perfilSenha" placeholder="Deixe em branco para manter"></div><button class="btn btn-primary" onclick="atualizarPerfil()"><i class="fas fa-save"></i> Atualizar Perfil</button></div>
+    </div>
+</main>
+
+<div id="modalCliente" class="modal"><div class="modal-content"><div class="modal-header"><h3 id="modalClienteTitle"><i class="fas fa-user-plus"></i> Novo Cliente</h3><button class="modal-close" onclick="closeModal('modalCliente')">&times;</button></div><form id="formCliente"><input type="hidden" id="editClienteId"><div class="form-group"><label>Nome</label><input type="text" id="clienteNome" required></div><div class="form-group"><label>Telefone</label><input type="text" id="clienteTelefone"></div><div class="form-group"><label>Email</label><input type="email" id="clienteEmail"></div><button type="submit" class="btn btn-primary" style="width:100%">Salvar</button></form></div></div>
+<div id="modalAgendamento" class="modal"><div class="modal-content"><div class="modal-header"><h3><i class="fas fa-calendar-check"></i> Agendamento</h3><button class="modal-close" onclick="closeModal('modalAgendamento')">&times;</button></div><form id="formAgendamento"><div class="form-group"><label>Cliente</label><select id="agCliente" required></select></div><div class="form-row"><div class="form-group"><label>Data</label><input type="date" id="agData" required></div><div class="form-group"><label>Horário</label><input type="time" id="agHora" required></div></div><div class="form-group"><label>Tipo</label><select id="agTipo"><option>Constelação Familiar</option><option>Sessão Individual</option></select></div><button type="submit" class="btn btn-primary" style="width:100%">Agendar</button></form></div></div>
+<div id="modalProntuario" class="modal"><div class="modal-content"><div class="modal-header"><h3><i class="fas fa-clipboard-list"></i> Prontuário</h3><button class="modal-close" onclick="closeModal('modalProntuario')">&times;</button></div><form id="formProntuario"><div class="form-group"><label>Cliente</label><select id="prCliente" required></select></div><div class="form-group"><label>Observações</label><textarea id="prTexto" rows="3" required></textarea></div><button type="submit" class="btn btn-primary" style="width:100%">Salvar</button></form></div></div>
+
+<script src="supabase.js"></script>
+<script>
+if (!verificarSessao('terapeuta')) throw new Error('Sessão inválida');
+
+let usuario = null, clientes = [], agendamentos = [], prontuarios = [], planos = [];
+const TIMEOUT_HORAS = 2, TIMEOUT_MS = TIMEOUT_HORAS * 60 * 60 * 1000;
+let sessaoTimerInterval = null;
+
+document.querySelectorAll('#sidebarNav button').forEach(btn => { btn.addEventListener('click', function() {
+    document.querySelectorAll('#sidebarNav button').forEach(b => b.classList.remove('active'));
+    this.classList.add('active');
+    const s = this.dataset.section;
+    document.querySelectorAll('[id^="section-"]').forEach(x => x.classList.add('hidden'));
+    const t = $('section-' + s); if (t) t.classList.remove('hidden');
+    if (window.innerWidth <= 768) closeSidebar();
+    const titles = { inicio: 'Início', clientes: 'Clientes', agenda: 'Agenda', prontuarios: 'Prontuários', sala: 'Sala 3D', planos: 'Planos', perfil: 'Perfil' };
+    $('headerTitle').textContent = titles[s] || s;
+    const actions = { inicio: carregarInicio, clientes: carregarClientes, agenda: carregarAgenda, prontuarios: carregarProntuarios, sala: verificarSessaoAtiva, planos: carregarPlanos, perfil: carregarPerfil };
+    if (actions[s]) actions[s]();
+})});
+
+function navSection(s) { document.querySelector(`#sidebarNav button[data-section="${s}"]`).click(); }
+function toggleSidebar() { document.querySelector('.sidebar').classList.toggle('open'); document.querySelector('.sidebar-overlay').classList.toggle('show'); }
+function closeSidebar() { document.querySelector('.sidebar').classList.remove('open'); document.querySelector('.sidebar-overlay').classList.remove('show'); }
+
+async function init() {
+    const { data } = await sb.from('terapeutas').select('*').eq('id', currentUserId).single();
+    if (!data) { logout(); return; }
+    usuario = data;
+    $('sidebarNome').textContent = usuario.nome?.split(' ')[0] || 'Terapeuta';
+    $('sidebarAvatar').textContent = (usuario.nome || 'T').charAt(0).toUpperCase();
+    atualizarSaldos();
+    await Promise.all([carregarClientes(), carregarAgenda(), carregarProntuarios(), carregarPlanos()]);
+    carregarInicio();
+    verificarSessaoAtiva();
+    setInterval(atualizarHora, 1000); atualizarHora();
+    setInterval(async () => {
+        if (!usuario) return;
+        const { data } = await sb.from('terapeutas').select('saldo,constelacoes_realizadas').eq('id', currentUserId).single();
+        if (data) { usuario.saldo = data.saldo; usuario.constelacoes_realizadas = data.constelacoes_realizadas; atualizarSaldos(); }
+    }, 10000);
+}
+
+function atualizarSaldos() {
+    const s = usuario?.saldo || 0;
+    ['sidebarCoins', 'headerCoins'].forEach(id => { const el = $(id); if (el) el.textContent = s; });
+    $('statConstelacoes').textContent = usuario?.constelacoes_realizadas || 0;
+}
+
+function atualizarHora() { const a = new Date(); $('headerDesc').innerHTML = `<i class="far fa-calendar-alt"></i> ${a.toLocaleDateString('pt-BR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })} · <i class="far fa-clock"></i> ${a.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`; }
+
+function carregarInicio() { $('statClientes').textContent = clientes.length; $('statAgendados').textContent = agendamentos.filter(a => a.status !== 'cancelado').length; $('statProntuarios').textContent = prontuarios.length; $('statConstelacoes').textContent = usuario?.constelacoes_realizadas || 0; }
+
+async function carregarClientes() { const { data } = await sb.from('clientes').select('*').eq('terapeuta_id', currentUserId).order('nome'); clientes = data || []; renderClientes(); popularSelectClientes(); }
+function renderClientes() { $('tabelaClientes').innerHTML = clientes.length === 0 ? '<tr><td colspan="5" class="empty-state">Nenhum cliente</td></tr>' : clientes.map(c => `<tr><td><strong>${c.nome}</strong></td><td>${c.telefone || '-'}</td><td>${c.email || '-'}</td><td>✨ ${c.constelacoes || 0}</td><td><div class="action-group"><button class="btn btn-outline btn-xs" onclick="editarCliente('${c.id}')"><i class="fas fa-edit"></i></button><button class="btn btn-danger btn-xs" onclick="excluirCliente('${c.id}')"><i class="fas fa-trash-alt"></i></button></div></td></tr>`).join(''); carregarInicio(); }
+function abrirModalCliente(id) {
+    if (id) { const c = clientes.find(x => x.id == id); if (!c) return; $('modalClienteTitle').innerHTML = '<i class="fas fa-edit"></i> Editar Cliente'; $('editClienteId').value = c.id; $('clienteNome').value = c.nome; $('clienteTelefone').value = c.telefone || ''; $('clienteEmail').value = c.email || ''; }
+    else { $('modalClienteTitle').innerHTML = '<i class="fas fa-user-plus"></i> Novo Cliente'; $('editClienteId').value = ''; $('clienteNome').value = ''; $('clienteTelefone').value = ''; $('clienteEmail').value = ''; }
+    openModal('modalCliente');
+}
+async function salvarCliente(e) { e.preventDefault(); const id = $('editClienteId').value; const d = { nome: $('clienteNome').value, telefone: $('clienteTelefone').value, email: $('clienteEmail').value, terapeuta_id: currentUserId }; showLoading(); if (id) await sb.from('clientes').update(d).eq('id', id); else await sb.from('clientes').insert([d]); hideLoading(); closeModal('modalCliente'); $('formCliente').reset(); carregarClientes(); toast(id ? 'Cliente atualizado!' : 'Cliente cadastrado!'); }
+function editarCliente(id) { abrirModalCliente(id); }
+async function excluirCliente(id) { if (!confirm('Excluir cliente?')) return; showLoading(); await sb.from('clientes').delete().eq('id', id); hideLoading(); carregarClientes(); }
+function popularSelectClientes() { const opts = clientes.map(c => `<option value="${c.nome}">${c.nome}</option>`).join(''); ['agCliente', 'prCliente'].forEach(id => { const s = $(id); if (s) s.innerHTML = '<option value="">Selecione</option>' + opts; }); }
+
+async function carregarAgenda() { const { data } = await sb.from('agendamentos').select('*').eq('terapeuta_id', currentUserId).order('data', { ascending: true }); agendamentos = data || []; renderAgenda(); }
+function renderAgenda() { const ativos = agendamentos.filter(a => a.status !== 'cancelado'); $('listaAgendamentos').innerHTML = ativos.length === 0 ? '<div class="empty-state">Nenhum agendamento</div>' : ativos.map(a => `<div class="stat-card" style="margin-bottom:8px"><div class="stat-icon" style="background:${a.status === 'confirmado' ? 'var(--success-light)' : 'var(--warning-light)'};color:${a.status === 'confirmado' ? 'var(--success)' : 'var(--warning)'}"><i class="fas fa-calendar"></i></div><div class="stat-info"><div class="stat-label">${a.cliente_nome}</div><div class="stat-value" style="font-size:14px">📅 ${new Date(a.data + 'T00:00').toLocaleDateString('pt-BR')} · ⏰ ${a.hora} · ${a.tipo}</div></div><div class="action-group">${a.status === 'pendente' ? `<button class="btn btn-success btn-xs" onclick="confirmarAgendamento('${a.id}')"><i class="fas fa-check"></i></button>` : ''}<button class="btn btn-danger btn-xs" onclick="cancelarAgendamento('${a.id}')"><i class="fas fa-times"></i></button></div></div>`).join(''); carregarInicio(); }
+function abrirModalAgendamento() { $('agCliente').value = ''; $('agData').value = ''; $('agHora').value = ''; popularSelectClientes(); openModal('modalAgendamento'); }
+async function salvarAgendamento(e) { e.preventDefault(); const d = { terapeuta_id: currentUserId, cliente_nome: $('agCliente').value, data: $('agData').value, hora: $('agHora').value, tipo: $('agTipo').value, status: 'pendente' }; if (!d.cliente_nome || !d.data || !d.hora) { toast('Preencha todos os campos'); return; } showLoading(); await sb.from('agendamentos').insert([d]); hideLoading(); closeModal('modalAgendamento'); $('formAgendamento').reset(); carregarAgenda(); toast('Agendamento realizado!'); }
+async function confirmarAgendamento(id) { showLoading(); await sb.from('agendamentos').update({ status: 'confirmado' }).eq('id', id); hideLoading(); carregarAgenda(); }
+async function cancelarAgendamento(id) { if (!confirm('Cancelar agendamento?')) return; showLoading(); await sb.from('agendamentos').update({ status: 'cancelado' }).eq('id', id); hideLoading(); carregarAgenda(); }
+
+async function carregarProntuarios() { const { data } = await sb.from('prontuarios').select('*').eq('terapeuta_id', currentUserId).order('data', { ascending: false }); prontuarios = data || []; renderProntuarios(); }
+function renderProntuarios() { const grouped = {}; prontuarios.forEach(p => { if (!grouped[p.cliente_nome]) grouped[p.cliente_nome] = []; grouped[p.cliente_nome].push(p); }); $('listaProntuarios').innerHTML = Object.keys(grouped).length === 0 ? '<div class="empty-state">Nenhum prontuário</div>' : Object.entries(grouped).map(([cliente, pts]) => `<div class="stat-card" style="margin-bottom:8px;cursor:pointer" onclick="verProntuarios('${cliente}')"><div class="stat-icon" style="background:var(--primary-light);color:var(--primary)"><i class="fas fa-clipboard-list"></i></div><div class="stat-info"><div class="stat-label">${cliente}</div><div class="stat-value" style="font-size:12px">📝 ${pts.length} registro(s) - Último: ${new Date(pts[0].data).toLocaleDateString('pt-BR')}</div></div></div>`).join(''); carregarInicio(); }
+function abrirModalProntuario(cliente) { $('prCliente').value = cliente || ''; $('prTexto').value = ''; popularSelectClientes(); openModal('modalProntuario'); }
+async function salvarProntuario(e) { e.preventDefault(); const d = { terapeuta_id: currentUserId, cliente_nome: $('prCliente').value, texto: $('prTexto').value }; if (!d.cliente_nome || !d.texto) { toast('Preencha todos os campos'); return; } showLoading(); await sb.from('prontuarios').insert([d]); const cl = clientes.find(c => c.nome === d.cliente_nome); if (cl) await sb.from('clientes').update({ constelacoes: (cl.constelacoes || 0) + 1 }).eq('id', cl.id); hideLoading(); closeModal('modalProntuario'); $('formProntuario').reset(); carregarProntuarios(); carregarClientes(); toast('Prontuário salvo!'); }
+function verProntuarios(cliente) { const pts = prontuarios.filter(p => p.cliente_nome === cliente); const html = pts.map(p => `<div style="margin-bottom:8px"><strong>📅 ${new Date(p.data).toLocaleDateString('pt-BR')}</strong><p>${p.texto}</p></div>`).join('<hr>'); const modal = document.createElement('div'); modal.className = 'modal show'; modal.innerHTML = `<div class="modal-content"><div class="modal-header"><h3>Prontuários de ${cliente}</h3><button class="modal-close" onclick="this.closest('.modal').remove()">&times;</button></div>${html || '<p>Nenhum registro</p>'}</div>`; document.body.appendChild(modal); modal.onclick = function(e) { if (e.target === modal) modal.remove(); }; }
+
+async function carregarPlanos() { const { data } = await sb.from('planos').select('*').eq('status', 'ativo').order('preco'); planos = data || []; $('planosGrid').innerHTML = planos.map(p => `<div class="stat-card stat-gold" style="flex-direction:column;align-items:center;text-align:center;cursor:pointer" onclick="solicitarPlano('${p.id}')"><div class="stat-icon" style="margin-bottom:8px"><i class="fas fa-coins"></i></div><div class="stat-label">${p.nome}</div><div class="stat-value" style="font-size:18px">💰 ${p.coins} Coins</div><div style="font-size:14px;font-weight:600;color:var(--primary);margin-top:4px">R$ ${p.preco.toFixed(2)}${p.tipo === 'mensal' ? '/mês' : ''}</div><div style="font-size:9px;color:var(--text-light);margin-top:4px">📱 Clique para solicitar</div></div>`).join(''); }
+
+async function solicitarPlano(planoId) {
+    const p = planos.find(x => x.id == planoId); if (!p) return;
+    showLoading();
+    await sb.from('solicitacoes_recarga').insert([{ terapeuta_id: currentUserId, terapeuta_nome: usuario.nome, terapeuta_email: usuario.email, plano_id: p.id, plano_nome: p.nome, qtd_coins: p.coins, valor: p.preco, tipo: p.tipo, status: 'pendente', data_solicitacao: new Date().toISOString() }]);
+    hideLoading();
+    const msg = `🟣 *SOLICITAÇÃO DE RECARGA - SYNAPSE*\n\n👤 ${usuario.nome}\n📧 ${usuario.email}\n📦 ${p.nome}\n💰 ${p.coins} Coins\n💵 R$ ${p.preco.toFixed(2)}\n✅ Aguardando aprovação`;
+    window.open(`https://wa.me/5579996458399?text=${encodeURIComponent(msg)}`, '_blank');
+    toast('Solicitação enviada! Aguarde aprovação.');
+}
+
+async function carregarPerfil() { $('perfilNome').value = usuario.nome || ''; $('perfilEmail').value = usuario.email || ''; $('perfilTelefone').value = usuario.telefone || ''; }
+async function atualizarPerfil() { const d = { telefone: $('perfilTelefone').value }; const s = $('perfilSenha').value; if (s && s.length >= 6) d.senha = s; showLoading(); await sb.from('terapeutas').update(d).eq('id', currentUserId); hideLoading(); $('perfilSenha').value = ''; toast('Perfil atualizado!'); }
+
+function verificarSessaoAtiva() {
+    const sessaoId = localStorage.getItem('sessaoConstelacao_' + currentUserId);
+    const sessaoInicio = localStorage.getItem('sessaoInicio_' + currentUserId);
+    const sessaoFinalizada = localStorage.getItem('sessaoFinalizada_' + currentUserId);
+    const info = $('sessaoInfo'), btnTexto = $('btnSalaTexto'), side = $('sideSessao');
+    if (sessaoFinalizada) { if (info) info.innerHTML = ''; if (btnTexto) btnTexto.textContent = 'Iniciar Nova Constelação'; if (side) side.textContent = ''; return; }
+    if (sessaoId && sessaoInicio) {
+        const tempoPassado = Date.now() - parseInt(sessaoInicio);
+        if (tempoPassado > TIMEOUT_MS) {
+            ['sessaoConstelacao_', 'sessaoInicio_', 'salaEstado_', 'sessaoFinalizada_'].forEach(k => localStorage.removeItem(k + currentUserId));
+            if (info) info.innerHTML = '<span style="color:var(--danger);font-size:10px">⏰ Sessão expirou</span>';
+            if (btnTexto) btnTexto.textContent = 'Iniciar Nova Constelação';
+            if (side) side.textContent = '';
+            return;
+        }
+        const minsRest = Math.floor((TIMEOUT_MS - tempoPassado) / 60000);
+        if (info) info.innerHTML = `<span style="color:var(--success);font-size:10px">🔄 Sessão ativa! ${minsRest}min restantes</span>`;
+        if (btnTexto) btnTexto.textContent = 'Retornar à Constelação';
+        if (side) side.textContent = '🔄';
+    } else {
+        if (info) info.innerHTML = ''; if (btnTexto) btnTexto.textContent = 'Iniciar Nova Constelação'; if (side) side.textContent = '';
+    }
+}
+
+async function abrirSala3D() {
+    if (!usuario) return;
+    const sessaoId = localStorage.getItem('sessaoConstelacao_' + currentUserId);
+    const sessaoInicio = localStorage.getItem('sessaoInicio_' + currentUserId);
+    let sessaoAtivaValida = false;
+    if (sessaoId && sessaoInicio && !localStorage.getItem('sessaoFinalizada_' + currentUserId)) {
+        if (Date.now() - parseInt(sessaoInicio) <= TIMEOUT_MS) sessaoAtivaValida = true;
+    }
+    if (!sessaoAtivaValida) {
+        if ((usuario.saldo || 0) < 1) { toast('Saldo insuficiente! Adquira Coins na aba Planos.'); return; }
+        if (!confirm(`⚠️ Iniciar nova constelação?\n\n💰 Custo: 1 Synapse Coin\n⏱️ Duração: ${TIMEOUT_HORAS} horas\n💳 Saldo: ${usuario.saldo} coins\n\nContinuar?`)) return;
+        usuario.saldo -= 1; atualizarSaldos();
+        await sb.from('terapeutas').update({ saldo: usuario.saldo }).eq('id', currentUserId);
+        localStorage.setItem('sessaoConstelacao_' + currentUserId, Date.now().toString());
+        localStorage.setItem('sessaoInicio_' + currentUserId, Date.now().toString());
+        localStorage.removeItem('sessaoFinalizada_' + currentUserId);
+        toast(`💰 -1 Coin | ⏱️ ${TIMEOUT_HORAS}h de sessão`);
+    }
+    const estadoSalvo = localStorage.getItem('salaEstado_' + currentUserId);
+    const w = window.open('', 'sala3D', 'width=' + screen.width + ',height=' + screen.height);
+    w.document.write(`<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>SYNAPSE | Sala 3D</title><link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600&display=swap" rel="stylesheet"><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"><style>
+*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Inter',sans-serif;background:#0a0a14;overflow:hidden;height:100vh}
+canvas{position:fixed;top:0;left:0;width:100vw;height:100vh;cursor:grab;z-index:1}
+.gt{position:fixed;top:10px;left:50%;transform:translateX(-50%);display:flex;gap:6px;z-index:100}
+.gtb{background:rgba(10,10,20,.88);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.1);border-radius:22px;padding:6px 14px;color:#ccc;cursor:pointer;font-size:.68rem;font-family:inherit;transition:.2s}
+.gtb:hover{background:#6B4E9E;color:#fff}.gtb.green{background:rgba(76,175,122,.2)}.gtb.green:hover{background:#4CAF7A}.gtb.red{background:rgba(229,115,115,.15)}.gtb.red:hover{background:#c46a5a}
+.gl{position:fixed;left:10px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:4px;z-index:100}
+.glb{width:38px;height:38px;border-radius:10px;background:rgba(10,10,20,.88);border:1px solid rgba(255,255,255,.1);color:#ccc;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.85rem}
+.glb:hover{background:#6B4E9E;color:#fff}.glb.sel{background:#6B4E9E;color:#fff}
+.gb{position:fixed;bottom:0;left:0;right:0;z-index:100;background:rgba(10,10,20,.94);border-top:1px solid rgba(255,255,255,.08);padding:7px 14px;display:flex;align-items:center;gap:6px;justify-content:center;flex-wrap:wrap}
+.gbc{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);color:#ccc;padding:5px 9px;border-radius:12px;cursor:pointer;font-size:.62rem;font-family:inherit;transition:.2s}
+.gbc:hover{background:#6B4E9E;color:#fff}.gbc.gold{border-color:rgba(230,200,138,.5);color:#e6c88a}.gbc.gold:hover{background:#e6c88a;color:#121212}
+.toast{position:fixed;bottom:60px;left:50%;transform:translateX(-50%);background:#6B4E9E;color:#fff;padding:5px 14px;border-radius:14px;font-size:.6rem;z-index:300;animation:fIn .3s}@keyframes fIn{from{opacity:0;transform:translateX(-50%) translateY(5px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+.fin{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.9);z-index:500;align-items:center;justify-content:center;flex-direction:column;gap:12px}.fin.show{display:flex}
+.fin i{font-size:3rem;color:#4CAF7A}.fin h2{color:#fff;font-size:1.2rem}.fin p{color:#aaa;font-size:.7rem}.btn-voltar{background:#6B4E9E;color:#fff;padding:10px 20px;border-radius:20px;border:none;cursor:pointer;font-weight:600;font-family:inherit;font-size:.8rem}
+<\/style></head><body><canvas id="c3d"></canvas>
+<div class="gt"><button class="gtb green" onclick="fin()"><i class="fas fa-check"></i> Finalizar</button><button class="gtb" onclick="clr()"><i class="fas fa-broom"></i> Limpar</button><button class="gtb" onclick="circ()"><i class="fas fa-circle"></i> Círculo</button><button class="gtb" onclick="shot()"><i class="fas fa-camera"></i> Foto</button><button class="gtb red" onclick="salvarEstado();window.close()"><i class="fas fa-times"></i> Sair</button></div>
+<div class="gl"><button class="glb sel" onclick="setMode('move')"><i class="fas fa-arrows-alt"></i></button><button class="glb" onclick="undo()"><i class="fas fa-undo"></i></button><button class="glb" onclick="delSel()"><i class="fas fa-trash-alt"></i></button></div>
+<div class="gb"><span class="gbc gold" onclick="add('Eu','eu')">⭐ Eu</span><span class="gbc" onclick="add('Pai','pai')">Pai</span><span class="gbc" onclick="add('Mãe','mae')">Mãe</span><span class="gbc" onclick="add('Filho(a)','filho')">Filho(a)</span><span class="gbc" onclick="add('Irmão(ã)','irmao')">Irmão(ã)</span><span class="gbc" onclick="add('Avô(ó)','avo')">Avô(ó)</span></div>
+<div class="fin" id="finOverlay"><i class="fas fa-check-circle"></i><h2>Constelação Finalizada!</h2><p id="finMsg"></p><button class="btn-voltar" onclick="finalizarConstelacao()"><i class="fas fa-arrow-left"></i> Voltar ao Painel</button></div>
+<script>
+const cv=document.getElementById('c3d'),r=new THREE.WebGLRenderer({canvas:cv,antialias:true,preserveDrawingBuffer:true}),s=new THREE.Scene();
+s.background=new THREE.Color(0x0e0e1a);
+const cam=new THREE.PerspectiveCamera(42,innerWidth/innerHeight,0.1,1000);cam.position.set(5.5,5.0,6.5);cam.lookAt(0,0.4,0);
+const lr=new THREE.CSS2DRenderer();lr.setSize(innerWidth,innerHeight);lr.domElement.style.cssText='position:fixed;top:0;left:0;pointer-events:none;z-index:50;';document.body.appendChild(lr.domElement);
+r.setSize(innerWidth,innerHeight);const ctrl=new THREE.OrbitControls(cam,r.domElement);ctrl.enableDamping=true;ctrl.enablePan=false;ctrl.target.set(0,0.6,0);
+const FR=3.2,SCALE=0.75;let ms=[],cs=[],ni=1,si=null,hs=[],md='move',di=null,wd=false;
+const gnd=new THREE.Mesh(new THREE.CircleGeometry(FR+0.3,32),new THREE.MeshStandardMaterial({color:0x2a3a2a}));gnd.rotation.x=-Math.PI/2;gnd.position.y=-0.25;s.add(gnd);
+const rp=[];for(let i=0;i<=64;i++){const a=(i/64)*Math.PI*2;rp.push(new THREE.Vector3(Math.cos(a)*FR,0.02,Math.sin(a)*FR))}s.add(new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(rp),new THREE.LineBasicMaterial({color:0xe6c88a})));
+[1.2,2.0,2.7].forEach(rr=>{const ri=new THREE.Mesh(new THREE.TorusGeometry(rr,0.04,64,200),new THREE.MeshStandardMaterial({color:0xe6c88a}));ri.rotation.x=Math.PI/2;ri.position.y=-0.15;s.add(ri)});
+s.add(new THREE.AmbientLight(0x4a5a4a,0.6));const lt=new THREE.DirectionalLight(0xfff2dc,1.2);lt.position.set(4,8,3);s.add(lt);
+function mkF(nm,rl){const g=new THREE.Group();let bc=0x6B4E9E,sc=0xF5D0A9;if(rl==='eu'){bc=0xFFD700;sc=0xFFF0C0}else if(rl==='pai')bc=0x1a3a5c;else if(rl==='mae')bc=0x8B1A4A;else if(rl==='filho')bc=0x4A90D9;else if(rl==='irmao')bc=0x2E7D32;else if(rl==='avo')bc=0x5D4037;
+const to=new THREE.Mesh(new THREE.CylinderGeometry(0.28*SCALE,0.32*SCALE,0.58*SCALE,8),new THREE.MeshStandardMaterial({color:bc}));to.position.y=0.3*SCALE;g.add(to);
+const hd=new THREE.Mesh(new THREE.SphereGeometry(0.32*SCALE,32,32),new THREE.MeshStandardMaterial({color:sc}));hd.position.y=0.64*SCALE;g.add(hd);
+const em=new THREE.MeshStandardMaterial({color:0x2a1a12}),le=new THREE.Mesh(new THREE.SphereGeometry(0.058*SCALE,24),em),re=new THREE.Mesh(new THREE.SphereGeometry(0.058*SCALE,24),em);
+le.position.set(-0.11*SCALE,0.74*SCALE,0.33*SCALE);re.position.set(0.11*SCALE,0.74*SCALE,0.33*SCALE);g.add(le,re);
+g.position.set((Math.random()-0.5)*5,-0.2,(Math.random()-0.5)*5);
+const div=document.createElement('div');div.style.cssText='background:#1a1a2e;color:#e6c88a;padding:3px 12px;border-radius:16px;font-size:11px;font-weight:700;border:1px solid #e6c88a';div.textContent=nm;
+const lb=new THREE.CSS2DObject(div);lb.position.set(0,1.45*SCALE,0);g.add(lb);g.userData={name:nm,role:rl};return{mesh:g,label:lb}}
+function add(nm,rl){const{mesh,label}=mkF(nm,rl);s.add(mesh);const id=ni++;mesh.userData.id=id;ms.push({id,name:nm,role:rl,mesh,label});hl();salvarEstado()}
+function rm(id){const i=ms.findIndex(m=>m.id===id);if(i===-1)return;const m=ms[i];s.remove(m.mesh);ms.splice(i,1);cs=cs.filter(c=>c.src!==id&&c.tgt!==id);rbl();if(si===id)si=null;hl();salvarEstado()}
+function clr(){ms.forEach(m=>s.remove(m.mesh));ms=[];cs.forEach(c=>{if(c.line)s.remove(c.line)});cs=[];ni=1;si=null;hl()}
+function rbl(){cs.forEach(c=>{if(c.line)s.remove(c.line)});const nc=[];cs.forEach(c=>{const sr=ms.find(m=>m.id===c.src),tr=ms.find(m=>m.id===c.tgt);if(sr&&tr){const pts=[new THREE.Vector3(sr.mesh.position.x,0.28,sr.mesh.position.z),new THREE.Vector3(tr.mesh.position.x,0.28,tr.mesh.position.z)];const line=new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts),new THREE.LineBasicMaterial({color:0xe6c88a}));s.add(line);nc.push({...c,line})}});cs=nc}
+function con(sr,tr){if(sr===tr)return;const ex=cs.findIndex(c=>(c.src===sr&&c.tgt===tr)||(c.src===tr&&c.tgt===sr));if(ex>=0){const c=cs[ex];if(c.line)s.remove(c.line);cs.splice(ex,1);rbl();salvarEstado();return}cs.push({src:sr,tgt:tr,line:null});rbl();salvarEstado()}
+function circ(){if(!ms.length)return;ms.forEach((m,i)=>{const a=(i/ms.length)*Math.PI*2;m.mesh.position.set(Math.cos(a)*2.2,-0.2,Math.sin(a)*2.2)});rbl();salvarEstado()}
+function hl(){ms.forEach(m=>{const old=m.mesh.children.find(c=>c.isGlow);if(old)m.mesh.remove(old);if(si===m.id){const r2=new THREE.Mesh(new THREE.SphereGeometry(0.5*SCALE,16),new THREE.MeshBasicMaterial({color:0xe6c88a,transparent:true,opacity:0.35}));r2.isGlow=true;r2.position.set(0,0.58*SCALE,0);m.mesh.add(r2)}})}
+function undo(){if(!hs.length)return;const last=hs.pop();ms.forEach(m=>s.remove(m.mesh));cs.forEach(c=>{if(c.line)s.remove(c.line)});ms=[];cs=[];last.m.forEach(d=>{const{mesh,label}=mkF(d.name,d.role);mesh.position.set(d.x,-0.2,d.z);mesh.userData.id=d.id;s.add(mesh);ms.push({id:d.id,name:d.name,role:d.role,mesh,label})});ni=last.nid;si=last.sid;last.c.forEach(c=>cs.push({...c,line:null}));rbl();hl();salvarEstado()}
+function delSel(){if(si)rm(si)}
+function shot(){r.render(s,cam);const a=document.createElement('a');a.download='constelacao_'+Date.now()+'.png';a.href=r.domElement.toDataURL();a.click()}
+function setMode(m){md=m}
+function svS(){hs.push({m:ms.map(m=>({id:m.id,name:m.name,role:m.role,x:m.mesh.position.x,z:m.mesh.position.z})),c:cs.map(c=>({src:c.src,tgt:c.tgt})),nid:ni,sid:si});if(hs.length>30)hs.shift()}
+function salvarEstado(){if(!window.uid)return;const estado={membros:ms.filter(m=>m.role).map(m=>({nome:m.name,role:m.role,x:m.mesh.position.x,z:m.mesh.position.z})),conexoes:cs.map(c=>({src:c.src,tgt:c.tgt}))};localStorage.setItem('salaEstado_'+window.uid,JSON.stringify(estado))}
+function finalizarConstelacao(){
+    if(window.opener){
+        window.opener.usuario.constelacoes_realizadas=(window.opener.usuario.constelacoes_realizadas||0)+1;
+        window.opener.document.getElementById('statConstelacoes').textContent=window.opener.usuario.constelacoes_realizadas;
+        window.opener.localStorage.setItem('sessaoFinalizada_'+window.uid,'true');
+    }
+    localStorage.removeItem('sessaoConstelacao_'+window.uid);localStorage.removeItem('sessaoInicio_'+window.uid);localStorage.removeItem('salaEstado_'+window.uid);
+    window.close()
+}
+function fin(){document.getElementById('finMsg').innerHTML=ms.length+' membros';document.getElementById('finOverlay').classList.add('show')}
+function msg(t){const ex=document.querySelector('.toast');if(ex)ex.remove();const d=document.createElement('div');d.className='toast';d.textContent=t;document.body.appendChild(d);setTimeout(()=>d.remove(),1600)}
+const ray=new THREE.Raycaster(),mouse=new THREE.Vector2();
+function sD(e){if(md!=='move')return;const rc=r.domElement.getBoundingClientRect();mouse.set(((e.clientX-rc.left)/rc.width)*2-1,-((e.clientY-rc.top)/rc.height)*2+1);ray.setFromCamera(mouse,cam);const hits=ray.intersectObjects(ms.map(m=>m.mesh),true);if(hits.length){let h=hits[0].object;while(h&&!ms.find(m=>m.mesh===h))h=h.parent;const f=ms.find(m=>m.mesh===h);if(f){di=f.id;wd=false}}}
+function mD(e){if(di===null)return;wd=true;const rc=r.domElement.getBoundingClientRect();mouse.set(((e.clientX-rc.left)/rc.width)*2-1,-((e.clientY-rc.top)/rc.height)*2+1);ray.setFromCamera(mouse,cam);const plane=new THREE.Plane(new THREE.Vector3(0,1,0),-0.2),pt=new THREE.Vector3();if(ray.ray.intersectPlane(plane,pt)){const mem=ms.find(m=>m.id===di);if(mem){const rr=Math.hypot(pt.x,pt.z);if(rr>FR-0.15){const a=Math.atan2(pt.z,pt.x);pt.x=Math.cos(a)*(FR-0.2);pt.z=Math.sin(a)*(FR-0.2)}mem.mesh.position.set(pt.x,-0.2,pt.z);rbl();salvarEstado()}}}
+function eD(){if(di!==null&&wd)svS();di=null;wd=false}
+function cC(e){if(wd||di!==null||md!=='move')return;const rc=r.domElement.getBoundingClientRect();mouse.set(((e.clientX-rc.left)/rc.width)*2-1,-((e.clientY-rc.top)/rc.height)*2+1);ray.setFromCamera(mouse,cam);const hits=ray.intersectObjects(ms.map(m=>m.mesh),true);if(hits.length){let h=hits[0].object;while(h&&!ms.find(m=>m.mesh===h))h=h.parent;const f=ms.find(m=>m.mesh===h);if(f){if(si&&si!==f.id){con(si,f.id);si=null;hl();return}si=f.id;hl()}}else{si=null;hl()}}
+cv.addEventListener('mousedown',sD);addEventListener('mousemove',mD);addEventListener('mouseup',eD);cv.addEventListener('click',cC);
+cv.addEventListener('touchstart',e=>{e.preventDefault();sD(e.touches[0])},{passive:false});addEventListener('touchmove',e=>{if(di!==null){e.preventDefault();mD(e.touches[0])}},{passive:false});addEventListener('touchend',eD);
+function anim(){requestAnimationFrame(anim);ctrl.update();r.render(s,cam);lr.render(s,cam)}anim();
+window.uid=${currentUserId};window.estadoInicial=${estadoSalvo||null};
+if(window.estadoInicial&&window.estadoInicial.membros){setTimeout(()=>{window.estadoInicial.membros.forEach(m=>add(m.nome,m.role));if(window.estadoInicial.conexoes)window.estadoInicial.conexoes.forEach(c=>con(c.src,c.tgt))},800)}
+<\/script></body></html>`);
+    w.usuarioId = currentUserId;
+    w.estadoInicial = estadoSalvo ? JSON.parse(estadoSalvo) : null;
+    w.document.close();
+    verificarSessaoAtiva();
+}
+
+$('formCliente').addEventListener('submit', salvarCliente);
+$('formAgendamento').addEventListener('submit', salvarAgendamento);
+$('formProntuario').addEventListener('submit', salvarProntuario);
+
+init();
+</script>
+</body>
+</html>
